@@ -1,0 +1,338 @@
+// Bunsho data model — audit-shaped from day one (PRD §8).
+//
+// Design rules encoded here:
+//   * Every tenant-scoped table carries `orgId` so Cloud SaaS (Phase 5) is not a rewrite.
+//   * `documentVersions` is immutable once published; `auditLog`, `approvals`, `reviews`,
+//     and `acknowledgments` are write-once. Prisma cannot express those guarantees, so
+//     they are enforced by database triggers in a companion migration
+//     (migrations/*_audit_triggers). This schema defines the shape; the triggers defend it.
+//   * `approvals` / `reviews` / `acknowledgments` ship DORMANT in v1 — no UI until Phases 2–3.
+//     They exist now because write-once evidence tables cannot be retrofitted onto history.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum Role {
+  admin
+  editor
+  viewer
+}
+
+enum DocumentType {
+  policy
+  sop
+  work_instruction
+  standard
+  other
+}
+
+enum SuggestionOrigin {
+  scheduled
+  on_demand
+  inline
+}
+
+enum SuggestionStatus {
+  pending
+  accepted
+  rejected
+}
+
+// The AI agent is a system actor, never a login user (PRD §3).
+enum ActorType {
+  user
+  ai
+  system
+}
+
+enum AuditAction {
+  document_created
+  document_edited
+  document_published
+  document_restored
+  document_retired
+  document_deleted
+  version_created
+  suggestion_created
+  suggestion_accepted
+  suggestion_rejected
+  user_created
+  user_deactivated
+  user_role_changed
+  settings_changed
+}
+
+// ───────────────────────── Tenancy ───────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users           User[]
+  folders         Folder[]
+  documents       Document[]
+  documentVersions DocumentVersion[]
+  suggestions     Suggestion[]
+  approvals       Approval[]
+  reviews         Review[]
+  acknowledgments Acknowledgment[]
+  auditLog        AuditLogEntry[]
+  settings        Settings?
+
+  @@map("organizations")
+}
+
+model Settings {
+  id       String @id @default(cuid())
+  orgId    String @unique
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  displayName      String?
+  aiEnabled        Boolean @default(false)
+  aiScanCadence    String? // e.g. "weekly" | "monthly" — free-form until AI lands (M5)
+  aiRateLimits     Json? // cost/rate ceilings for scheduled scans
+  exportRepoConfig Json? // local repo path / optional remote push target
+  ssoConfig        Json? // OIDC/SAML provider pointers (secrets live in env, not here)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ────────────────────── Identity & access ────────────────────
+
+model User {
+  id           String  @id @default(cuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  email        String
+  name         String?
+  role         Role    @default(viewer)
+  passwordHash String? // null for SSO-only accounts (Auth.js adapter tables arrive in M1)
+  active       Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownedDocuments   Document[]        @relation("DocumentOwner")
+  authoredVersions DocumentVersion[] @relation("VersionAuthor")
+  actedSuggestions Suggestion[]      @relation("SuggestionActor")
+  approvals        Approval[]        @relation("ApprovalApprover")
+  reviews          Review[]          @relation("ReviewReviewer")
+  acknowledgments  Acknowledgment[]  @relation("AcknowledgmentUser")
+
+  @@unique([orgId, email])
+  @@index([orgId])
+  @@map("users")
+}
+
+// ───────────────────── Documents & versions ──────────────────
+
+model Folder {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children  Folder[] @relation("FolderTree")
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+
+  @@index([orgId])
+  @@index([parentId])
+  @@map("folders")
+}
+
+// Mutable container. Its content lives in `documentVersions`; the current published
+// version is a projection pointer maintained by the lifecycle service (PRD §8).
+model Document {
+  id        String       @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  docCode   String
+  title     String
+  type      DocumentType @default(other)
+  ownerId   String?
+  owner     User?        @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  folderId  String?
+  folder    Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags      String[]     @default([])
+
+  // Projection of the live published version. Null until first publish.
+  currentPublishedVersionId String?          @unique
+  currentPublishedVersion   DocumentVersion? @relation("CurrentPublished", fields: [currentPublishedVersionId], references: [id], onDelete: SetNull)
+
+  // Document-level retirement (Draft → Published → Retired). Null = active.
+  retiredAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions    DocumentVersion[] @relation("DocumentVersions")
+  suggestions Suggestion[]
+  reviews     Review[]
+
+  @@unique([orgId, docCode])
+  @@index([orgId])
+  @@index([folderId])
+  @@map("documents")
+}
+
+// Immutable once `publishedAt` is set (enforced by DB trigger). The full audit
+// lifecycle lives here even though v1 UI exposes only Draft / Published / Retired.
+model DocumentVersion {
+  id         String   @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+
+  version         Int // monotonic per document; the draft claims its number, frozen at publish
+  prosemirrorJson Json // canonical draft format (ProseMirror JSON)
+  markdown        String? // frozen Markdown, serialized at publish — null while a draft
+  contentSha      String? // sha256 over the frozen content — null while a draft
+
+  changeNote String?
+  authorId   String?
+  author     User?   @relation("VersionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  // Write-once lifecycle timestamps. "Which version was published on date D"
+  // falls out of these ranges. `updatedAt` tracks draft autosaves; once published
+  // the row is frozen, so it stops moving.
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  publishedAt  DateTime?
+  retiredAt    DateTime?
+  supersededAt DateTime?
+
+  suggestions     Suggestion[]     @relation("SuggestionBaseVersion")
+  approvals       Approval[]
+  acknowledgments Acknowledgment[]
+  currentFor      Document?        @relation("CurrentPublished")
+
+  @@unique([documentId, version])
+  @@index([orgId])
+  @@index([documentId])
+  @@map("document_versions")
+}
+
+// ─────────────────── AI suggestions queue ────────────────────
+// AI output routes here only; nothing applies until an Editor/Admin accepts.
+model Suggestion {
+  id            String          @id @default(cuid())
+  orgId         String
+  org           Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documentId    String
+  document      Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  baseVersionId String
+  baseVersion   DocumentVersion @relation("SuggestionBaseVersion", fields: [baseVersionId], references: [id], onDelete: Cascade)
+
+  payload Json // the proposed diff / rewrite
+  origin  SuggestionOrigin
+  status  SuggestionStatus @default(pending)
+
+  // The human who accepted/rejected. AI never resolves its own suggestions.
+  actingHumanId String?
+  actingHuman   User?   @relation("SuggestionActor", fields: [actingHumanId], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([orgId])
+  @@index([documentId, status])
+  @@map("suggestions")
+}
+
+// ─────────────── Dormant write-once evidence (Phases 2–3) ─────
+// Present now because event-sourced evidence cannot be retrofitted onto history.
+
+model Approval {
+  id                String          @id @default(cuid())
+  orgId             String
+  org               Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documentVersionId String
+  documentVersion   DocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Cascade)
+  approverId        String?
+  approver          User?           @relation("ApprovalApprover", fields: [approverId], references: [id], onDelete: SetNull)
+
+  decision  String // "approved" | "rejected"
+  statement String? // role statement captured at signing time
+  signedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([documentVersionId])
+  @@map("approvals")
+}
+
+model Review {
+  id         String       @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  reviewerId String?
+  reviewer   User?        @relation("ReviewReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  outcome   String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([documentId])
+  @@map("reviews")
+}
+
+model Acknowledgment {
+  id                String          @id @default(cuid())
+  orgId             String
+  org               Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documentVersionId String
+  documentVersion   DocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Cascade)
+  userId            String?
+  user              User?           @relation("AcknowledgmentUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  acknowledgedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@unique([documentVersionId, userId])
+  @@index([orgId])
+  @@map("acknowledgments")
+}
+
+// ───────────────────────── Audit log ─────────────────────────
+// Append-only hash chain: hash = sha256(prevHash || canonical(row)).
+// Insert-only; the DB trigger rejects UPDATE and DELETE. `seq` gives a total
+// order per org for chain verification (the `verify-audit` command, M1).
+model AuditLogEntry {
+  seq       BigInt       @id @default(autoincrement())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  action     AuditAction
+  actorType  ActorType
+  actorId    String? // user id, or null for ai/system actors
+  targetType String // e.g. "document", "document_version", "user"
+  targetId   String?
+  metadata   Json? // action-specific detail (canonicalized into the hash)
+
+  prevHash String?
+  hash     String
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId, seq])
+  @@map("audit_log")
+}

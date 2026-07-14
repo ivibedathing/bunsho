@@ -1,0 +1,71 @@
+# Bunsho — exactly two services (PRD §4.5, §8): the app and Postgres. Nothing else.
+#
+# Quickstart:
+#   cp .env.example .env         # then set AUTH_SECRET (openssl rand -base64 32)
+#   docker compose up --build    # applies migrations, then starts the app
+#
+# The `migrate` one-shot runs `prisma migrate deploy` before the app starts, so
+# `docker compose up` on a new image also performs the schema upgrade.
+
+x-db-url: &db-url postgresql://${POSTGRES_USER:-bunsho}:${POSTGRES_PASSWORD:-bunsho}@db:5432/${POSTGRES_DB:-bunsho}?schema=public
+
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bunsho}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bunsho}
+      POSTGRES_DB: ${POSTGRES_DB:-bunsho}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bunsho} -d ${POSTGRES_DB:-bunsho}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Exposed for local tooling/backups; remove this mapping to keep Postgres internal.
+    ports:
+      - "${DB_PORT:-5432}:5432"
+
+  migrate:
+    build:
+      context: .
+      target: builder
+    command: ["pnpm", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: *db-url
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: *db-url
+      # Required — sign session tokens. Set in .env: openssl rand -base64 32
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      ORG_NAME: ${ORG_NAME:-Bunsho}
+      # Optional AI (leave blank to keep AI features disabled)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AI_ENABLED: ${AI_ENABLED:-true}
+      AI_MODEL: ${AI_MODEL:-claude-opus-4-8}
+      # Optional SSO
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_NAME: ${OIDC_NAME:-SSO}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000"
+
+volumes:
+  db-data:

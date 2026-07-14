@@ -1,0 +1,16 @@
+.git
+node_modules
+.next
+out
+build
+coverage
+.data
+*.md
+!README.md
+.env
+.env.*
+.github
+brand
+Dockerfile
+docker-compose.yml
+.dockerignore
