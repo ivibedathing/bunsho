@@ -1,50 +1,107 @@
+@import "tailwindcss";
+
+/* ── Carbon & Gold tokens (dark-only theme) ──────────────────────────────── */
 :root {
-  color-scheme: light dark;
-  --bg: #ffffff;
-  --fg: #171717;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent-soft: #eff6ff;
+  color-scheme: dark;
+
+  --carbon: #131110;
+  --carbon-raised: #1c1916;
+  --carbon-sunken: #0d0b0a;
+
+  --ink: #ede4ce;
+  --ink-muted: #9c9282;
+  --line: #2e2a24;
+
+  --gold: #d9be82;
+  --gold-bright: #ead5a5;
+  --gold-wash: #2a241a;
+
+  /* The document surface — cream paper on the carbon desk */
+  --paper: #f0e4c2;
+  --paper-ink: #26221a;
+
+  --ok: #8fbf9a;
+  --ok-wash: #1b2a20;
+  --draft: #d9a93f;
+  --draft-wash: #2e2510;
+  --retired: #8a8272;
+  --retired-wash: #232019;
+  --info: #8fa3c9;
+  --info-wash: #1d2330;
+  --danger: #d26a5a;
+  --danger-wash: #301714;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0a0a0a;
-    --fg: #ededed;
-    --muted: #9ca3af;
-    --border: #2a2a2a;
-    --accent-soft: #12233f;
-  }
+@theme inline {
+  --color-*: initial;
+  --color-carbon: var(--carbon);
+  --color-carbon-raised: var(--carbon-raised);
+  --color-carbon-sunken: var(--carbon-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-wash: var(--gold-wash);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-ok: var(--ok);
+  --color-ok-wash: var(--ok-wash);
+  --color-draft: var(--draft);
+  --color-draft-wash: var(--draft-wash);
+  --color-retired: var(--retired);
+  --color-retired-wash: var(--retired-wash);
+  --color-info: var(--info);
+  --color-info-wash: var(--info-wash);
+  --color-danger: var(--danger);
+  --color-danger-wash: var(--danger-wash);
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
 body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+  background-color: var(--carbon);
+  /* Carbon dot-grid texture */
+  background-image: radial-gradient(circle, rgba(217, 190, 130, 0.06) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-sans);
   line-height: 1.5;
 }
 
-a {
-  color: inherit;
+::selection {
+  background: rgba(217, 190, 130, 0.28);
 }
 
-/* ── TipTap / ProseMirror editing surface ─────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ── TipTap / ProseMirror editing surface ─────────────────────────────────
+   Renders inside the cream paper card; dark ink on paper.
+   Includes re-assertions of styles Tailwind preflight strips (lists,
+   heading weights) — published document fidelity depends on these. */
 .bunsho-editor {
+  --ed-ink: var(--paper-ink);
+  --ed-muted: #6e6455;
+  --ed-line: rgba(38, 34, 26, 0.22);
+  --ed-wash: rgba(38, 34, 26, 0.06);
+
   min-height: 24rem;
   padding: 1.25rem 1.5rem;
   outline: none;
-  font-size: 1rem;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--ed-ink);
 }
 
 .bunsho-editor:focus {
@@ -53,6 +110,14 @@ a {
 
 .bunsho-editor > * + * {
   margin-top: 0.75em;
+}
+
+.bunsho-editor h1,
+.bunsho-editor h2,
+.bunsho-editor h3,
+.bunsho-editor h4 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .bunsho-editor h1 {
@@ -70,33 +135,50 @@ a {
   margin-top: 1em;
 }
 
+.bunsho-editor ul {
+  list-style: disc;
+}
+.bunsho-editor ol {
+  list-style: decimal;
+}
 .bunsho-editor ul,
 .bunsho-editor ol {
   padding-left: 1.4rem;
 }
+.bunsho-editor li > p {
+  margin: 0;
+}
+.bunsho-editor li + li {
+  margin-top: 0.25em;
+}
 
 .bunsho-editor blockquote {
-  border-left: 3px solid var(--border);
+  border-left: 3px solid var(--ed-line);
   margin-left: 0;
   padding-left: 1rem;
-  color: var(--muted);
+  color: var(--ed-muted);
 }
 
 .bunsho-editor a {
-  color: #2563eb;
+  color: #31518f;
   text-decoration: underline;
 }
 
+.bunsho-editor strong {
+  font-weight: 700;
+}
+
 .bunsho-editor code {
-  background: var(--accent-soft);
+  font-family: var(--font-mono);
+  background: var(--ed-wash);
   padding: 0.1em 0.3em;
   border-radius: 0.3em;
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 .bunsho-editor p.is-editor-empty:first-child::before {
   content: "Start writing…";
-  color: var(--muted);
+  color: var(--ed-muted);
   float: left;
   height: 0;
   pointer-events: none;
@@ -116,14 +198,14 @@ a {
 
 .bunsho-editor th,
 .bunsho-editor td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--ed-line);
   padding: 0.4rem 0.55rem;
   vertical-align: top;
   min-width: 3rem;
 }
 
 .bunsho-editor th {
-  background: var(--accent-soft);
+  background: var(--ed-wash);
   font-weight: 600;
   text-align: left;
 }
@@ -132,7 +214,7 @@ a {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(217, 190, 130, 0.25);
   pointer-events: none;
 }
 
@@ -147,6 +229,6 @@ a {
   top: 0;
   bottom: 0;
   width: 4px;
-  background: #2563eb;
+  background: var(--gold);
   pointer-events: none;
 }

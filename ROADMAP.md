@@ -31,6 +31,9 @@ retrofitted), the UI ships the **simplest lifecycle** that makes Bunsho a daily 
 | **M6** | **Export + import + templates** | Git export with deterministic rebuild + zip download; Markdown/zip import to Draft; starter template pack (CC BY 4.0) on first run | F9, F10, F11 |
 | **M7** | **v1 release** | Install/upgrade docs, one-command Compose quickstart, ghcr.io image on tag, screenshots; **our real documents migrated in — dogfooding begins** | — |
 
+*Post-M7 (2026-07-14): the "carbon & gold" UI redesign landed as a presentation layer (design
+system, app shell, motion, publish-seal moment) — see PRD §11. No roadmap sequencing changed.*
+
 ### v1 scope at a glance
 
 **IN:** document repository with folders/categories · TipTap editor with tables + autosave ·

@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [".next", "node_modules", "src/generated", "prisma/migrations"]
+    "ignore": [".next", "node_modules", "src/generated", "prisma/migrations", "src/app/globals.css"]
   },
   "organizeImports": {
     "enabled": true
