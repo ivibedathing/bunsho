@@ -1,0 +1,15 @@
+Bunsho
+Copyright 2026 The Bunsho Authors
+
+This product includes software developed by The Bunsho Authors, licensed under
+the Apache License, Version 2.0 (see LICENSE).
+
+--------------------------------------------------------------------------------
+NOTE ON CONTENT
+
+The starter document templates shipped with Bunsho (src/lib/templates.ts) are
+original content licensed under Creative Commons Attribution 4.0 International
+(CC BY 4.0), https://creativecommons.org/licenses/by/4.0/ — not the Apache
+License. This carve-out is unchanged; it lives here rather than in LICENSE so
+that LICENSE stays a verbatim copy of Apache-2.0 and license scanners can
+identify it correctly.
