@@ -1,9 +1,9 @@
+import { describe, expect, it } from "vitest";
 import { documentStats, recentDocuments } from "@/lib/dashboard";
 import { prisma } from "@/lib/db";
 import { getOrCreateDraft, publishDocument, retireDocument } from "@/lib/lifecycle";
 import { createSuggestion } from "@/lib/suggestions";
 import { makeDocumentWithDraft, makeFolder, makeOrgWithAdmin, pmDoc } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 /** Force a document's `updatedAt`; Prisma's `@updatedAt` owns the field otherwise. */
 async function setUpdatedAt(documentId: string, when: Date) {

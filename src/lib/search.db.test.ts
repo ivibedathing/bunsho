@@ -1,8 +1,8 @@
+import { describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import { getOrCreateDraft, publishDocument, retireDocument } from "@/lib/lifecycle";
 import { type SearchRow, searchDocuments } from "@/lib/search";
 import { makeDocumentWithDraft, makeFolder, makeOrgWithAdmin, makeUser, pmDoc } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 /**
  * `updatedAt` is `@updatedAt`, so Prisma rewrites it on every write — publishing a

@@ -1,8 +1,11 @@
 import nodefs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import git from "isomorphic-git";
+import JSZip from "jszip";
+import { afterEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
-import { type ExportFile, buildZip, collectExport, rebuildGitRepo } from "@/lib/export/repo";
+import { buildZip, collectExport, type ExportFile, rebuildGitRepo } from "@/lib/export/repo";
 import { getOrCreateDraft, publishDocument, retireDocument } from "@/lib/lifecycle";
 import {
   makeDocumentWithDraft,
@@ -12,9 +15,6 @@ import {
   makeUser,
   pmDoc,
 } from "@/test/db";
-import git from "isomorphic-git";
-import JSZip from "jszip";
-import { afterEach, describe, expect, it } from "vitest";
 
 /**
  * The export writes a real git repo through isomorphic-git, so every test gets

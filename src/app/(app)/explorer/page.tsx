@@ -1,3 +1,4 @@
+import { FilePlus2, FolderTree } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -5,7 +6,6 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { countPages, getExplorerTree } from "@/lib/explorer";
 import { requireRole } from "@/lib/rbac";
-import { FilePlus2, FolderTree } from "lucide-react";
 import { ExplorerTree } from "./ExplorerTree";
 
 export const dynamic = "force-dynamic";

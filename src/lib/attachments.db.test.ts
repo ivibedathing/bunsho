@@ -1,17 +1,17 @@
 import { createHash } from "node:crypto";
+import { describe, expect, it } from "vitest";
 import {
-  MAX_ATTACHMENT_BYTES,
   createAttachment,
   deleteAttachment,
   getAttachmentWithData,
   isInlineImageType,
   listAttachments,
+  MAX_ATTACHMENT_BYTES,
 } from "@/lib/attachments";
 import { verifyOrgChain } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 import { publishDocument, retireDocument } from "@/lib/lifecycle";
 import { auditActions, makeDocumentWithDraft, makeOrgWithAdmin, makeUser, pmDoc } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 const sha256 = (data: Buffer) => createHash("sha256").update(data).digest("hex");
 

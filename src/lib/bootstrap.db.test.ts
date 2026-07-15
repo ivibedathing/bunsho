@@ -1,9 +1,9 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { verifyOrgChain } from "@/lib/audit/writer";
 import { createFirstAdmin, usersExist } from "@/lib/bootstrap";
 import { prisma } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { makeOrg, makeUser } from "@/test/db";
-import { afterEach, describe, expect, it, vi } from "vitest";
 
 // bootstrap.ts reads ORG_NAME inside createFirstAdmin, at call time, so each
 // test can stub it. stubEnv (not assignment) because Node coerces env values to

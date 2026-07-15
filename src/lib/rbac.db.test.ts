@@ -1,8 +1,8 @@
+import type { Session } from "next-auth";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/db";
 import { can, getCurrentUser, requireRole, requireUser } from "@/lib/rbac";
 import { makeOrg, makeOrgWithAdmin, makeUser } from "@/test/db";
-import type { Session } from "next-auth";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * `@/auth` is the real next-auth config (providers, adapter, env); importing it

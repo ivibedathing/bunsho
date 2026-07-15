@@ -1,5 +1,5 @@
-import { type DiffSegment, diffMarkdown } from "@/lib/diff";
 import { describe, expect, it } from "vitest";
+import { type DiffSegment, diffMarkdown } from "@/lib/diff";
 
 /** The `from` side of a redline: everything except the additions. */
 function reconstructFrom(segments: DiffSegment[]): string {
@@ -74,9 +74,9 @@ describe("diffMarkdown", () => {
     expect(reconstructTo(segments)).toBe("");
   });
 
-  it("reports an empty-to-empty diff as a single empty unchanged segment", () => {
-    // jsdiff emits one zero-length unchanged part rather than an empty list.
-    expect(diffMarkdown("", "")).toEqual([{ value: "", added: false, removed: false }]);
+  it("reports an empty-to-empty diff as no segments at all", () => {
+    // jsdiff 5 emitted one zero-length unchanged part here; 6+ emits nothing.
+    expect(diffMarkdown("", "")).toEqual([]);
   });
 });
 

@@ -1,7 +1,7 @@
+import { describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import { createFolder, listFolders } from "@/lib/folders";
 import { makeOrgWithAdmin } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 describe("listFolders", () => {
   it("returns only the caller's org", async () => {

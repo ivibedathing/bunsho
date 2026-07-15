@@ -1,12 +1,3 @@
-import { Stagger, StaggerItem } from "@/components/motion/Reveal";
-import { Card } from "@/components/ui/Card";
-import { DocCode } from "@/components/ui/DocCode";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { PageHeader } from "@/components/ui/PageHeader";
-import type { AuditAction } from "@/generated/prisma/client";
-import { type ActivityItem, recentActivityByUser } from "@/lib/activity";
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/rbac";
 import {
   Archive,
   FilePlus2,
@@ -22,6 +13,15 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+import { Stagger, StaggerItem } from "@/components/motion/Reveal";
+import { Card } from "@/components/ui/Card";
+import { DocCode } from "@/components/ui/DocCode";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import type { AuditAction } from "@/generated/prisma/client";
+import { type ActivityItem, recentActivityByUser } from "@/lib/activity";
+import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { describe, expect, it } from "vitest";
 import { verifyOrgChain } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 import {
@@ -11,7 +12,6 @@ import {
   versionMarkdown,
 } from "@/lib/lifecycle";
 import { auditActions, makeDocumentWithDraft, makeOrgWithAdmin, pmDoc } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 describe("documentStatus", () => {
   it("is retired when retiredAt is set, regardless of a published version", () => {

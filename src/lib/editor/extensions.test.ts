@@ -1,6 +1,6 @@
-import { markdownToProseMirror } from "@/lib/markdown/parse";
 import { getSchema } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
+import { markdownToProseMirror } from "@/lib/markdown/parse";
 import { buildEditorExtensions } from "./extensions";
 
 /**

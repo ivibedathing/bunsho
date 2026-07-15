@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/db";
 import { afterAll, beforeEach } from "vitest";
+import { prisma } from "@/lib/db";
 import { resetDb } from "./db";
 
 /**

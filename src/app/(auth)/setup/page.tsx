@@ -1,6 +1,6 @@
+import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { usersExist } from "@/lib/bootstrap";
-import { redirect } from "next/navigation";
 import { SetupForm } from "./SetupForm";
 
 // Reads the DB on every request — first-run state must never be cached.

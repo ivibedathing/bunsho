@@ -1,7 +1,7 @@
+import { describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import { STARTER_TEMPLATES, seedStarterTemplates } from "@/lib/templates";
 import { makeDocumentWithDraft, makeOrgWithAdmin } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 describe("STARTER_TEMPLATES", () => {
   it("ships a non-empty pack where every entry has a title and a body", () => {

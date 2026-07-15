@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type DocRow, type FolderRow, assembleExplorerTree, countPages } from "./explorer";
+import { assembleExplorerTree, countPages, type DocRow, type FolderRow } from "./explorer";
 
 const AT = new Date("2026-07-15T00:00:00Z");
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { summarizeAction } from "../actions";
 
 export function SummarizeButton({ documentId }: { documentId: string }) {

@@ -1,8 +1,8 @@
+import { describe, expect, it } from "vitest";
 import { recentActivityByUser } from "@/lib/activity";
 import { type AppendAuditInput, appendAudit } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 import { makeDocumentWithDraft, makeOrgWithAdmin, makeUser } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 /** appendAudit takes a per-org advisory lock, so it only runs inside a transaction. */
 function append(input: AppendAuditInput) {

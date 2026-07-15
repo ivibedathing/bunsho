@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { TEST_DATABASE_URL, adminUrl, assertScratchDatabase, databaseName } from "./env";
+import { adminUrl, assertScratchDatabase, databaseName, TEST_DATABASE_URL } from "./env";
 
 /**
  * Provision the scratch database once per `vitest` run: create it if absent, then

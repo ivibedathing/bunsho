@@ -1,9 +1,9 @@
+import { ChevronRight, FileText, FolderClosed, Plus } from "lucide-react";
+import Link from "next/link";
 import { DocCode } from "@/components/ui/DocCode";
 import { StatusSeal } from "@/components/ui/StatusSeal";
 import type { ExplorerFolder, ExplorerPage } from "@/lib/explorer";
 import { countPages } from "@/lib/explorer";
-import { ChevronRight, FileText, FolderClosed, Plus } from "lucide-react";
-import Link from "next/link";
 
 /**
  * The hierarchy, rendered with <details>/<summary> so folders and pages collapse

@@ -1,17 +1,17 @@
+import { describe, expect, it } from "vitest";
 import { verifyOrgChain } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 import { publishDocument } from "@/lib/lifecycle";
 import {
-  type CreateSuggestionInput,
-  type SuggestionPayload,
   acceptSuggestion,
+  type CreateSuggestionInput,
   countPendingSuggestions,
   createSuggestion,
   listPendingSuggestions,
   rejectSuggestion,
+  type SuggestionPayload,
 } from "@/lib/suggestions";
 import { auditActions, makeDocumentWithDraft, makeOrgWithAdmin, pmDoc } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 /** A scheduled AI suggestion; overrides tune only the payload a test cares about. */
 function input(

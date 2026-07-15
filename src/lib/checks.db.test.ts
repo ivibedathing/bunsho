@@ -1,10 +1,10 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Prisma } from "@/generated/prisma/client";
 import { reviewMarkdown, summarizeMarkdown } from "@/lib/ai/anthropic";
 import { runAiReview, runAiSummary, runDocumentChecks } from "@/lib/checks";
 import { prisma } from "@/lib/db";
 import { publishDocument, retireDocument } from "@/lib/lifecycle";
 import { makeDocumentWithDraft, makeOrgWithAdmin, pmDoc } from "@/test/db";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // The LLM is never called for real: these are the only two functions checks.ts
 // uses from the SDK wrapper, and both are stubbed per test.

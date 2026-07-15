@@ -1,7 +1,8 @@
+import { describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import {
-  EMPTY_DOC,
   createDocument,
+  EMPTY_DOC,
   getDocumentWithDraft,
   listDocuments,
   nextDocCode,
@@ -16,7 +17,6 @@ import {
   makeUser,
   pmDoc,
 } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 /** A bare document row with an exact docCode — `nextDocCode` only reads codes. */
 async function makeDocWithCode(orgId: string, docCode: string) {

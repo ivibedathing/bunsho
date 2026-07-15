@@ -1,8 +1,8 @@
+import { describe, expect, it } from "vitest";
 import { computeEntryHash, verifyChain } from "@/lib/audit/hashChain";
 import { type AppendAuditInput, appendAudit, loadChain, verifyOrgChain } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 import { makeOrg, makeOrgWithAdmin } from "@/test/db";
-import { describe, expect, it } from "vitest";
 
 /** appendAudit takes a per-org advisory lock, so it only runs inside a transaction. */
 function append(input: AppendAuditInput) {
