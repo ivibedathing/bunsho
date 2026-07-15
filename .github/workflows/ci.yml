@@ -37,11 +37,52 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test (Vitest)
+      - name: Test — unit (Vitest)
         run: pnpm test
 
       - name: Build (Next.js)
         run: pnpm build
+
+  integration:
+    name: Integration tests (Postgres)
+    runs-on: ubuntu-latest
+    # A real Postgres, because the invariants under test are database triggers:
+    # the append-only audit log, frozen published versions, one draft per
+    # document. A mocked client cannot exercise any of them.
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: bunsho
+          POSTGRES_PASSWORD: bunsho
+          POSTGRES_DB: bunsho
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bunsho -d bunsho"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # A scratch database — the suite truncates every table between tests.
+      TEST_DATABASE_URL: postgresql://bunsho:bunsho@localhost:5432/bunsho_test?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test — integration (Vitest)
+        run: pnpm test:db
 
   migrations:
     name: Prisma migrations apply cleanly
