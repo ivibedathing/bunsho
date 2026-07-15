@@ -11,6 +11,13 @@ import type { PMMark, PMNode } from "./serialize";
 
 const md = new MarkdownIt({ html: false, linkify: true });
 
+// markdown-it's default validateLink rejects all `data:` URIs except a few
+// raster image types, which would silently drop draw.io diagrams (editable
+// SVG data URIs). Allowing them is safe: they render via <img>, where SVG
+// scripts never execute.
+const defaultValidateLink = md.validateLink.bind(md);
+md.validateLink = (url) => defaultValidateLink(url) || /^data:image\/svg\+xml[;,]/.test(url);
+
 function removeMark(marks: PMMark[], type: string): void {
   const i = marks.map((m) => m.type).lastIndexOf(type);
   if (i >= 0) marks.splice(i, 1);
@@ -65,6 +72,16 @@ function parseInline(children: InlineToken[]): PMNode[] {
       case "link_close":
         removeMark(marks, "link");
         break;
+      case "image": {
+        // Editable-SVG data URIs are draw.io diagrams (see serialize.ts).
+        // Other images have no node in the editor schema and are dropped,
+        // matching the rest of this best-effort importer.
+        const src = c.attrGet("src") ?? "";
+        if (/^data:image\/svg\+xml[;,]/.test(src)) {
+          out.push({ type: "drawio", attrs: { svg: src } });
+        }
+        break;
+      }
       case "softbreak":
         out.push({ type: "text", text: " ", marks: withMarks() });
         break;
@@ -74,6 +91,26 @@ function parseInline(children: InlineToken[]): PMNode[] {
     }
   }
   return out;
+}
+
+/**
+ * Diagrams are block atoms in the editor schema but arrive from Markdown as
+ * inline images. Lift them out of the just-closed paragraph (the last child
+ * of `parent`) to block-level siblings, dropping the paragraph if the
+ * diagram was all it held. List items keep an empty leading paragraph, since
+ * their schema requires one.
+ */
+function hoistDrawio(para: PMNode, parent: PMNode): void {
+  const inline = para.content ?? [];
+  if (!inline.some((n) => n.type === "drawio")) return;
+  const rest = inline.filter((n) => n.type !== "drawio");
+  const diagrams = inline.filter((n) => n.type === "drawio");
+  const siblings = parent.content ?? [];
+  siblings.pop(); // the paragraph itself
+  if (rest.length > 0 || parent.type === "listItem") {
+    siblings.push({ ...para, content: rest });
+  }
+  siblings.push(...diagrams);
 }
 
 export function markdownToProseMirror(source: string): PMNode {
@@ -103,9 +140,11 @@ export function markdownToProseMirror(source: string): PMNode {
       case "paragraph_open":
         open({ type: "paragraph", content: [] });
         break;
-      case "paragraph_close":
-        stack.pop();
+      case "paragraph_close": {
+        const para = stack.pop() as PMNode;
+        hoistDrawio(para, top());
         break;
+      }
       case "bullet_list_open":
         open({ type: "bulletList", content: [] });
         break;

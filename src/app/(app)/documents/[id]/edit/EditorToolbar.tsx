@@ -13,6 +13,7 @@ import {
   Table,
   TextQuote,
   Trash2,
+  Workflow,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -131,6 +132,13 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         }}
       >
         <Link2 {...ICON} aria-hidden />
+      </Btn>
+      <Btn
+        title="Insert diagram"
+        active={editor.isActive("drawio")}
+        onClick={() => editor.chain().focus().insertDrawio().run()}
+      >
+        <Workflow {...ICON} aria-hidden />
       </Btn>
       <Sep />
       <Btn

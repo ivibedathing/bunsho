@@ -10,8 +10,11 @@
   },
   "packageManager": "pnpm@10.29.2",
   "scripts": {
+    "predev": "pnpm drawio:fetch",
     "dev": "next dev",
+    "prebuild": "pnpm drawio:fetch",
     "build": "next build",
+    "drawio:fetch": "node --import tsx scripts/fetch-drawio.ts",
     "start": "next start",
     "lint": "biome check .",
     "format": "biome format --write .",
@@ -29,6 +32,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.111.0",
     "@prisma/client": "^6.2.1",
+    "@tiptap/core": "2.27.2",
     "@tiptap/extension-link": "2.27.2",
     "@tiptap/extension-table": "2.27.2",
     "@tiptap/extension-table-cell": "2.27.2",

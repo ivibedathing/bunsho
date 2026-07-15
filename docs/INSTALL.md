@@ -45,6 +45,16 @@ for the full list. The essentials:
 | `AI_SCHEDULED_CHECKS` / `AI_SCAN_CRON` | Turn on scheduled staleness/reference checks (pg-boss). |
 | `EXPORT_REPO_PATH` | Where "Rebuild git export" writes the one-way git repo. |
 
+### Diagrams (draw.io)
+
+The image bundles the draw.io editor (vendored at build time into
+`public/drawio/`) and serves it same-origin, so inserting and editing diagrams
+works **fully offline / air-gapped** — no connection to diagrams.net is ever
+made. Two build-time knobs exist for people building their own image:
+`NEXT_PUBLIC_DRAWIO_URL` points the editor at a different draw.io deployment,
+and `DRAWIO_SKIP_FETCH=1` skips the vendoring download (use them together for
+offline builds). Neither has any effect on the prebuilt ghcr.io image.
+
 ## Upgrading
 
 Bunsho ships forward-only, history-preserving migrations.

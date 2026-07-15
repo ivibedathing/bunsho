@@ -124,6 +124,12 @@ function serializeBlock(node: PMNode): string {
       return "---";
     case "table":
       return serializeTable(node);
+    case "drawio": {
+      // The editable-SVG data URI is the whole diagram (image + embedded
+      // source XML), so a plain GFM image keeps the Markdown faithful.
+      const svg = node.attrs?.svg as string | null | undefined;
+      return svg ? `![drawio](${svg})` : "";
+    }
     default:
       // Unknown block: fall back to its inline content so nothing is silently lost.
       return serializeInline(node.content);
