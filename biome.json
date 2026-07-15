@@ -12,9 +12,7 @@
       "!**/node_modules",
       "!**/src/generated",
       "!**/prisma/migrations",
-      "!**/src/app/globals.css",
-      "!explorer.html",
-      "!sub.html"
+      "!**/src/app/globals.css"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
