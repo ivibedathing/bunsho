@@ -10,6 +10,7 @@
 
 [![CI](https://github.com/ivibedathing/bunsho/actions/workflows/ci.yml/badge.svg)](https://github.com/ivibedathing/bunsho/actions/workflows/ci.yml)
 [![Release](https://github.com/ivibedathing/bunsho/actions/workflows/release.yml/badge.svg)](https://github.com/ivibedathing/bunsho/actions/workflows/release.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ivibedathing/bunsho/badge)](https://scorecard.dev/viewer/?uri=github.com/ivibedathing/bunsho)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522-339933?logo=node.js&logoColor=white)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
