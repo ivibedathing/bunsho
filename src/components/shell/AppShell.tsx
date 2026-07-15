@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/Button";
 import { FilePlus2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/Button";
 import { Logo } from "./Logo";
 import { type NavItem, SidebarNav } from "./SidebarNav";
 import { UserCard } from "./UserCard";

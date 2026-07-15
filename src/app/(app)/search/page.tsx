@@ -1,3 +1,5 @@
+import { SearchX } from "lucide-react";
+import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { DocCode } from "@/components/ui/DocCode";
@@ -9,8 +11,6 @@ import { Table, Td, Th } from "@/components/ui/Table";
 import { listFolders } from "@/lib/folders";
 import { requireUser } from "@/lib/rbac";
 import { type SearchRow, searchDocuments } from "@/lib/search";
-import { SearchX } from "lucide-react";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 

@@ -1,10 +1,10 @@
 "use client";
 
+import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { saveDraftAction } from "@/app/(app)/documents/actions";
 import { AutosaveIndicator, type SaveStatus } from "@/components/motion/AutosaveIndicator";
 import { buildEditorExtensions } from "@/lib/editor/extensions";
-import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorToolbar } from "./EditorToolbar";
 
 const AUTOSAVE_MS = 800;

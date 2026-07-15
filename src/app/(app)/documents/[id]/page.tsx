@@ -1,3 +1,7 @@
+import type { JSONContent } from "@tiptap/react";
+import { Archive, History, Inbox, ListChecks, PenLine, Sparkles, Stamp } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/Reveal";
 import { SealStamp } from "@/components/motion/SealStamp";
 import { Button } from "@/components/ui/Button";
@@ -11,11 +15,7 @@ import { isAiEnabled } from "@/lib/ai/anthropic";
 import { listAttachments } from "@/lib/attachments";
 import { getDocumentDetail } from "@/lib/lifecycle";
 import { requireUser } from "@/lib/rbac";
-import { type SuggestionPayload, listPendingSuggestions } from "@/lib/suggestions";
-import type { JSONContent } from "@tiptap/react";
-import { Archive, History, Inbox, ListChecks, PenLine, Sparkles, Stamp } from "lucide-react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import { listPendingSuggestions, type SuggestionPayload } from "@/lib/suggestions";
 import {
   acceptSuggestionAction,
   editAction,
@@ -61,7 +61,7 @@ export default async function DocumentDetailPage({
   const detail = await getDocumentDetail(user.orgId, id);
   if (!detail) notFound();
 
-  const { doc, draft, published, status } = detail;
+  const { doc, draft, status } = detail;
   const current = doc.currentPublishedVersion;
   const isAdmin = user.role === "admin";
   const canManage = user.role !== "viewer";

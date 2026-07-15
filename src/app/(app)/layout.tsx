@@ -1,8 +1,8 @@
+import type { ReactNode } from "react";
 import { signOut } from "@/auth";
 import { AppShell } from "@/components/shell/AppShell";
 import type { NavItem } from "@/components/shell/SidebarNav";
 import { requireUser } from "@/lib/rbac";
-import type { ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
 

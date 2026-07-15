@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/db";
-import { verifyPassword } from "@/lib/password";
 import NextAuth from "next-auth";
 import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
+import { prisma } from "@/lib/db";
+import { verifyPassword } from "@/lib/password";
 
 /**
  * Auth.js (NextAuth v5) configuration — Credentials + optional generic OIDC,
@@ -30,7 +30,7 @@ const providers: Provider[] = [
 
       // Single org in v1, so email identifies the account.
       const user = await prisma.user.findFirst({ where: { email } });
-      if (!user || !user.active || !user.passwordHash) return null;
+      if (!user?.active || !user.passwordHash) return null;
       if (!(await verifyPassword(password, user.passwordHash))) return null;
 
       return {

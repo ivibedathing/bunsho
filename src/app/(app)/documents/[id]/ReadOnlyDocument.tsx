@@ -1,7 +1,7 @@
 "use client";
 
-import { buildEditorExtensions } from "@/lib/editor/extensions";
 import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
+import { buildEditorExtensions } from "@/lib/editor/extensions";
 
 /** Read-only WYSIWYG render of a version's content, reusing the editor schema. */
 export function ReadOnlyDocument({ content }: { content: JSONContent }) {

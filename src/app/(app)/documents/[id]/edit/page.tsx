@@ -1,3 +1,6 @@
+import type { JSONContent } from "@tiptap/react";
+import { Stamp } from "lucide-react";
+import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { DocCode } from "@/components/ui/DocCode";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -5,9 +8,6 @@ import { VersionStamp } from "@/components/ui/VersionStamp";
 import { getDocumentWithDraft } from "@/lib/documents";
 import { getOrCreateDraft } from "@/lib/lifecycle";
 import { requireRole } from "@/lib/rbac";
-import type { JSONContent } from "@tiptap/react";
-import { Stamp } from "lucide-react";
-import { notFound } from "next/navigation";
 import { DocumentEditor } from "./DocumentEditor";
 
 export const dynamic = "force-dynamic";

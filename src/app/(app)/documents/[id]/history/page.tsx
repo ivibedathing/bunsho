@@ -1,3 +1,5 @@
+import { ArrowLeft, FileDiff, RotateCcw } from "lucide-react";
+import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { DocCode } from "@/components/ui/DocCode";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -6,8 +8,6 @@ import { Table, Td, Th } from "@/components/ui/Table";
 import { VersionStamp } from "@/components/ui/VersionStamp";
 import { getDocumentDetail } from "@/lib/lifecycle";
 import { requireUser } from "@/lib/rbac";
-import { ArrowLeft, FileDiff, RotateCcw } from "lucide-react";
-import { notFound } from "next/navigation";
 import { restoreAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -29,11 +29,7 @@ function versionStatus(v: {
   return "published";
 }
 
-export default async function DocumentHistoryPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function DocumentHistoryPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await params;
   const detail = await getDocumentDetail(user.orgId, id);

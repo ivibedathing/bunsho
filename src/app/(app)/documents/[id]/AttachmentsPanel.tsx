@@ -1,7 +1,7 @@
+import { Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { AttachmentMeta } from "@/lib/attachments";
-import { Paperclip, Trash2, Upload } from "lucide-react";
 import { deleteAttachmentAction, uploadAttachmentsAction } from "../actions";
 
 function fmtSize(bytes: number): string {

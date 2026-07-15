@@ -1,6 +1,5 @@
 "use client";
 
-import { uploadEditorImageAction } from "@/app/(app)/documents/actions";
 import type { Editor } from "@tiptap/react";
 import {
   Bold,
@@ -18,6 +17,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { type ReactNode, useRef } from "react";
+import { uploadEditorImageAction } from "@/app/(app)/documents/actions";
 
 function Btn({
   onClick,
