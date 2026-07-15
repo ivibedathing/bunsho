@@ -6,6 +6,7 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  ImagePlus,
   Italic,
   Link2,
   List,
@@ -13,8 +14,10 @@ import {
   Table,
   TextQuote,
   Trash2,
+  Workflow,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
+import { uploadEditorImageAction } from "@/app/(app)/documents/actions";
 
 function Btn({
   onClick,
@@ -56,8 +59,21 @@ function Sep() {
 
 const ICON = { size: 16, strokeWidth: 1.75 } as const;
 
-export function EditorToolbar({ editor }: { editor: Editor }) {
+export function EditorToolbar({ editor, documentId }: { editor: Editor; documentId: string }) {
   const inTable = editor.isActive("table");
+  const imageInput = useRef<HTMLInputElement>(null);
+
+  async function uploadImage(file: File) {
+    const fd = new FormData();
+    fd.set("file", file);
+    const result = await uploadEditorImageAction(documentId, fd);
+    if ("error" in result) {
+      window.alert(result.error);
+      return;
+    }
+    editor.chain().focus().setImage({ src: result.url, alt: file.name }).run();
+  }
+
   return (
     <div className="sticky top-[3.75rem] z-10 flex flex-wrap items-center gap-0.5 border-b border-line bg-carbon-raised/90 px-2 py-1.5 backdrop-blur md:top-0">
       <Btn
@@ -131,6 +147,27 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         }}
       >
         <Link2 {...ICON} aria-hidden />
+      </Btn>
+      <Btn title="Insert image" onClick={() => imageInput.current?.click()}>
+        <ImagePlus {...ICON} aria-hidden />
+      </Btn>
+      <input
+        ref={imageInput}
+        type="file"
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = ""; // allow re-selecting the same file
+          if (file) void uploadImage(file);
+        }}
+      />
+      <Btn
+        title="Insert diagram"
+        active={editor.isActive("drawio")}
+        onClick={() => editor.chain().focus().insertDrawio().run()}
+      >
+        <Workflow {...ICON} aria-hidden />
       </Btn>
       <Sep />
       <Btn

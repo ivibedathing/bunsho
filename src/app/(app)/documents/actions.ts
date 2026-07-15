@@ -1,11 +1,12 @@
 "use server";
 
 import path from "node:path";
-import type { DocumentType } from "@/generated/prisma/client";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { createAttachment, deleteAttachment, isInlineImageType } from "@/lib/attachments";
 import { runAiReview, runAiSummary, runDocumentChecks } from "@/lib/checks";
 import { prisma } from "@/lib/db";
 import { isValidDocCode, normalizeDocCode } from "@/lib/docCode";
-import { DOCUMENT_TYPES } from "@/lib/documentTypes";
 import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
 import { rebuildGitRepo } from "@/lib/export/repo";
 import { createFolder } from "@/lib/folders";
@@ -14,8 +15,6 @@ import { getOrCreateDraft, publishDocument, restoreVersion, retireDocument } fro
 import { requireRole } from "@/lib/rbac";
 import { acceptSuggestion, rejectSuggestion } from "@/lib/suggestions";
 import { seedStarterTemplates } from "@/lib/templates";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 const EXPORT_REPO_PATH =
   process.env.EXPORT_REPO_PATH ?? path.join(process.cwd(), ".data", "export-repo");
@@ -31,18 +30,18 @@ export async function createDocumentAction(
   const user = await requireRole("admin", "editor");
 
   const title = String(formData.get("title") ?? "").trim();
-  const type = String(formData.get("type") ?? "other") as DocumentType;
   const folderRaw = String(formData.get("folderId") ?? "");
   const folderId = folderRaw === "" ? null : folderRaw;
+  const parentRaw = String(formData.get("parentId") ?? "");
+  const parentId = parentRaw === "" ? null : parentRaw;
   let docCode = normalizeDocCode(String(formData.get("docCode") ?? ""));
 
   if (!title) return { error: "Title is required." };
-  if (!DOCUMENT_TYPES.includes(type)) return { error: "Choose a valid document type." };
 
   if (docCode === "") {
-    docCode = await nextDocCode(user.orgId, type);
+    docCode = await nextDocCode(user.orgId);
   } else if (!isValidDocCode(docCode)) {
-    return { error: "Doc code must look like POL-007 (2–6 letters, hyphen, 3+ digits)." };
+    return { error: "Doc code must look like DOC-007 (2–6 letters, hyphen, 3+ digits)." };
   } else {
     const clash = await prisma.document.findFirst({
       where: { orgId: user.orgId, docCode },
@@ -51,7 +50,20 @@ export async function createDocumentAction(
     if (clash) return { error: `Doc code ${docCode} is already in use.` };
   }
 
-  const doc = await createDocument(user.orgId, user.id, { title, type, docCode, folderId });
+  if (parentId) {
+    const parent = await prisma.document.findFirst({
+      where: { id: parentId, orgId: user.orgId },
+      select: { id: true },
+    });
+    if (!parent) return { error: "That parent page no longer exists." };
+  }
+
+  const doc = await createDocument(user.orgId, user.id, {
+    title,
+    docCode,
+    folderId,
+    parentId,
+  });
   redirect(`/documents/${doc.id}/edit`);
 }
 
@@ -101,6 +113,62 @@ export async function restoreAction(formData: FormData): Promise<void> {
   const versionId = String(formData.get("versionId") ?? "");
   await restoreVersion(user.orgId, user.id, documentId, versionId);
   redirect(`/documents/${documentId}/edit`);
+}
+
+// ── Attachments ──────────────────────────────────────────────────────────────
+
+/** Upload one or more files as attachments of a document (panel form). */
+export async function uploadAttachmentsAction(formData: FormData): Promise<void> {
+  const user = await requireRole("admin", "editor");
+  const documentId = String(formData.get("documentId") ?? "");
+  const uploads = formData
+    .getAll("files")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+
+  for (const f of uploads) {
+    await createAttachment(user.orgId, user.id, {
+      documentId,
+      filename: f.name,
+      mimeType: f.type || "application/octet-stream",
+      data: Buffer.from(await f.arrayBuffer()),
+    });
+  }
+  revalidatePath(`/documents/${documentId}`);
+}
+
+export async function deleteAttachmentAction(formData: FormData): Promise<void> {
+  const user = await requireRole("admin", "editor");
+  const documentId = String(formData.get("documentId") ?? "");
+  const attachmentId = String(formData.get("attachmentId") ?? "");
+  await deleteAttachment(user.orgId, user.id, attachmentId);
+  revalidatePath(`/documents/${documentId}`);
+}
+
+/**
+ * Editor image upload (bound-arg action). Stores the image as a document
+ * attachment and returns the URL the inline image node should reference.
+ */
+export async function uploadEditorImageAction(
+  documentId: string,
+  formData: FormData,
+): Promise<{ url: string } | { error: string }> {
+  const user = await requireRole("admin", "editor");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "No file received." };
+  if (!isInlineImageType(file.type)) {
+    return { error: "Use a PNG, JPEG, GIF, or WebP image." };
+  }
+  try {
+    const { id } = await createAttachment(user.orgId, user.id, {
+      documentId,
+      filename: file.name,
+      mimeType: file.type,
+      data: Buffer.from(await file.arrayBuffer()),
+    });
+    return { url: `/api/attachments/${id}` };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Upload failed." };
+  }
 }
 
 // ── AI assistance (suggestion-only) ──────────────────────────────────────────

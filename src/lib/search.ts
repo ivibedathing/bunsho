@@ -5,7 +5,6 @@ export interface SearchRow {
   id: string;
   docCode: string;
   title: string;
-  type: string;
   updatedAt: Date;
   currentPublishedVersionId: string | null;
   retiredAt: Date | null;
@@ -17,7 +16,6 @@ export interface SearchRow {
 export interface SearchOptions {
   query: string;
   folderId?: string;
-  type?: string;
   status?: string;
 }
 
@@ -56,7 +54,6 @@ export async function searchDocuments(
   }
 
   if (opts.folderId) conditions.push(Prisma.sql`d."folderId" = ${opts.folderId}`);
-  if (opts.type) conditions.push(Prisma.sql`d."type" = ${opts.type}::"DocumentType"`);
 
   // The searchable text for a document: published body + title + code.
   const docText = Prisma.sql`(coalesce(v.markdown, '') || ' ' || d.title || ' ' || d."docCode")`;
@@ -76,7 +73,6 @@ export async function searchDocuments(
     SELECT d.id,
            d."docCode"                    AS "docCode",
            d.title,
-           d."type"::text                 AS type,
            d."updatedAt"                  AS "updatedAt",
            d."currentPublishedVersionId"  AS "currentPublishedVersionId",
            d."retiredAt"                  AS "retiredAt",

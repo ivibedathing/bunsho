@@ -1,3 +1,5 @@
+import { Archive, FilePlus2, FileText, PenLine, Search, Sparkles, Stamp } from "lucide-react";
+import Link from "next/link";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { ProgressRing } from "@/components/motion/ProgressRing";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
@@ -10,11 +12,8 @@ import { StatTile } from "@/components/ui/StatTile";
 import { StatusSeal } from "@/components/ui/StatusSeal";
 import type { Role } from "@/generated/prisma/client";
 import { documentStats, recentDocuments } from "@/lib/dashboard";
-import { DOCUMENT_TYPE_LABELS } from "@/lib/documentTypes";
 import { requireUser } from "@/lib/rbac";
 import { searchDocuments } from "@/lib/search";
-import { Archive, FilePlus2, FileText, PenLine, Search, Sparkles, Stamp } from "lucide-react";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -173,9 +172,6 @@ async function ViewerDashboard({ orgId, role }: { orgId: string; role: Role }) {
                 >
                   <DocCode code={d.docCode} className="min-w-20" />
                   <span className="flex-1 truncate font-medium text-ink">{d.title}</span>
-                  <span className="text-xs text-ink-muted">
-                    {DOCUMENT_TYPE_LABELS[d.type as keyof typeof DOCUMENT_TYPE_LABELS] ?? d.type}
-                  </span>
                 </Link>
               </StaggerItem>
             ))}

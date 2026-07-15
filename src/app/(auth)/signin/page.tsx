@@ -1,7 +1,7 @@
+import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { usersExist } from "@/lib/bootstrap";
 import { getCurrentUser } from "@/lib/rbac";
-import { redirect } from "next/navigation";
 import { SignInForm } from "./SignInForm";
 
 export const dynamic = "force-dynamic";

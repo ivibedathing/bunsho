@@ -9,7 +9,6 @@ describe("frontMatter", () => {
       frontMatter({
         docCode: "POL-007",
         title: "Access: Control",
-        type: "policy",
         version: 3,
         publishedAt,
       }),
@@ -18,7 +17,6 @@ describe("frontMatter", () => {
         "---",
         'code: "POL-007"',
         'title: "Access: Control"',
-        "type: policy",
         "version: 3",
         "published: 2026-07-14T12:00:00.000Z",
         "---",
@@ -31,7 +29,6 @@ describe("frontMatter", () => {
       frontMatter({
         docCode: "X",
         title: 'A "quoted" title',
-        type: "sop",
         version: 1,
         publishedAt,
       }),
@@ -64,7 +61,6 @@ describe("documentToMarkdown", () => {
       meta: {
         docCode: "POL-007",
         title: "Access",
-        type: "policy",
         version: 1,
         publishedAt,
         author: "Ada",
@@ -83,7 +79,6 @@ describe("documentToMarkdown", () => {
         meta: {
           docCode: "POL-007",
           title: "Access",
-          type: "policy",
           version: 1,
           publishedAt,
           author: "Ada",

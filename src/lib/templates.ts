@@ -1,6 +1,5 @@
-import type { DocumentType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { createDocument, saveDraft } from "@/lib/documents";
+import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
 import { markdownToProseMirror } from "@/lib/markdown/parse";
 
 /**
@@ -10,17 +9,13 @@ import { markdownToProseMirror } from "@/lib/markdown/parse";
  */
 
 export interface StarterTemplate {
-  docCode: string;
   title: string;
-  type: DocumentType;
   body: string;
 }
 
 export const STARTER_TEMPLATES: StarterTemplate[] = [
   {
-    docCode: "POL-001",
     title: "Information Security Policy",
-    type: "policy",
     body: `# Information Security Policy
 
 ## Purpose
@@ -39,9 +34,7 @@ Applies to all employees, contractors, and systems that store, process, or trans
 This policy is reviewed at least annually and after any material change to the business or its systems.`,
   },
   {
-    docCode: "POL-002",
     title: "Access Control Policy",
-    type: "policy",
     body: `# Access Control Policy
 
 ## Purpose
@@ -57,9 +50,7 @@ Define how access to systems and data is granted, reviewed, and revoked.
 Approvals, reviews, and revocations are retained as evidence.`,
   },
   {
-    docCode: "POL-003",
     title: "Acceptable Use Policy",
-    type: "policy",
     body: `# Acceptable Use Policy
 
 ## Purpose
@@ -72,9 +63,7 @@ Set expectations for the responsible use of company systems and data.
 - Suspected misuse or compromise is reported immediately.`,
   },
   {
-    docCode: "POL-004",
     title: "Data Classification and Handling Policy",
-    type: "policy",
     body: `# Data Classification and Handling Policy
 
 ## Purpose
@@ -90,9 +79,7 @@ Provide a consistent scheme for classifying data and handling it accordingly.
 Encryption in transit is required for all classifications; encryption at rest is required for Confidential and Restricted data. Retention and disposal follow the data owner's direction.`,
   },
   {
-    docCode: "POL-005",
     title: "Vendor and Third-Party Risk Policy",
-    type: "policy",
     body: `# Vendor and Third-Party Risk Policy
 
 ## Purpose
@@ -104,9 +91,7 @@ Ensure third parties handling company or customer data meet our security expecta
 - Vendor risk is reviewed at least annually and on material change.`,
   },
   {
-    docCode: "POL-006",
     title: "Vulnerability and Patch Management Policy",
-    type: "policy",
     body: `# Vulnerability and Patch Management Policy
 
 ## Purpose
@@ -118,9 +103,7 @@ Reduce risk from known vulnerabilities through timely detection and remediation.
 - Exceptions are documented, time-bound, and approved.`,
   },
   {
-    docCode: "SOP-001",
     title: "Incident Response Procedure",
-    type: "sop",
     body: `# Incident Response Procedure
 
 ## Purpose
@@ -137,9 +120,7 @@ Provide clear, repeatable steps for handling security incidents.
 Each incident is logged with a timeline, actions taken, and follow-ups.`,
   },
   {
-    docCode: "SOP-002",
     title: "Access Review Procedure",
-    type: "sop",
     body: `# Access Review Procedure
 
 ## Purpose
@@ -157,21 +138,26 @@ Reviews are performed at least quarterly.`,
 ];
 
 /**
- * Seed any templates whose doc code is not already present, as Drafts owned by
- * the acting admin. Idempotent — safe to run more than once.
+ * Seed any templates not already present, as Drafts owned by the acting admin.
+ * Idempotent — safe to run more than once.
+ *
+ * Identity is the title, not the doc code: templates draw their codes from the
+ * same `DOC-` sequence as everything else, so a hardcoded code would collide
+ * with whatever the org has already created and silently skip the template.
+ * Codes are allocated one at a time, inside the loop, so each seeded draft
+ * advances the sequence for the next.
  */
 export async function seedStarterTemplates(orgId: string, actorId: string): Promise<number> {
   let created = 0;
   for (const tpl of STARTER_TEMPLATES) {
     const exists = await prisma.document.findFirst({
-      where: { orgId, docCode: tpl.docCode },
+      where: { orgId, title: tpl.title },
       select: { id: true },
     });
     if (exists) continue;
     const doc = await createDocument(orgId, actorId, {
       title: tpl.title,
-      type: tpl.type,
-      docCode: tpl.docCode,
+      docCode: await nextDocCode(orgId),
     });
     await saveDraft(orgId, doc.id, markdownToProseMirror(tpl.body));
     created++;

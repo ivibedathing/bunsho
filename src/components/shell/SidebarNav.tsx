@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUp, Files, House, type LucideIcon, Search } from "lucide-react";
+import { Files, FileUp, FolderTree, House, type LucideIcon, Search } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 const ICONS: Record<string, LucideIcon> = {
   home: House,
   documents: Files,
+  explorer: FolderTree,
   search: Search,
   import: FileUp,
 };
@@ -27,7 +28,10 @@ function activeHref(pathname: string, items: NavItem[]): string | undefined {
 export function SidebarNav({
   items,
   horizontal = false,
-}: { items: NavItem[]; horizontal?: boolean }) {
+}: {
+  items: NavItem[];
+  horizontal?: boolean;
+}) {
   const pathname = usePathname();
   const reduce = useReducedMotion();
   const active = activeHref(pathname, items);

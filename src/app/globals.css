@@ -16,9 +16,9 @@
   --gold-bright: #ead5a5;
   --gold-wash: #2a241a;
 
-  /* The document surface — cream paper on the carbon desk */
-  --paper: #f0e4c2;
-  --paper-ink: #26221a;
+  /* The document surface — a slightly lifted carbon sheet on the dark desk */
+  --paper: #211d18;
+  --paper-ink: var(--ink);
 
   --ok: #8fbf9a;
   --ok-wash: #1b2a20;
@@ -87,14 +87,14 @@ body {
 }
 
 /* ── TipTap / ProseMirror editing surface ─────────────────────────────────
-   Renders inside the cream paper card; dark ink on paper.
+   Renders inside the dark document card; light ink on carbon.
    Includes re-assertions of styles Tailwind preflight strips (lists,
    heading weights) — published document fidelity depends on these. */
 .bunsho-editor {
   --ed-ink: var(--paper-ink);
-  --ed-muted: #6e6455;
-  --ed-line: rgba(38, 34, 26, 0.22);
-  --ed-wash: rgba(38, 34, 26, 0.06);
+  --ed-muted: var(--ink-muted);
+  --ed-line: rgba(237, 228, 206, 0.18);
+  --ed-wash: rgba(237, 228, 206, 0.06);
 
   min-height: 24rem;
   padding: 1.25rem 1.5rem;
@@ -160,7 +160,7 @@ body {
 }
 
 .bunsho-editor a {
-  color: #31518f;
+  color: var(--info);
   text-decoration: underline;
 }
 
@@ -174,6 +174,17 @@ body {
   padding: 0.1em 0.3em;
   border-radius: 0.3em;
   font-size: 0.85em;
+}
+
+/* Inline images (document attachments) */
+.bunsho-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+}
+.bunsho-editor img.ProseMirror-selectednode {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
 }
 
 .bunsho-editor p.is-editor-empty:first-child::before {

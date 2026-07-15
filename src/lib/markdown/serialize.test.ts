@@ -110,6 +110,31 @@ describe("serializeToMarkdown", () => {
     expect(serializeToMarkdown(table)).toBe("| a\\|b |\n| --- |\n");
   });
 
+  it("serializes inline images", () => {
+    expect(
+      serializeToMarkdown(
+        doc(
+          p(
+            text("See "),
+            { type: "image", attrs: { src: "/api/attachments/abc123", alt: "flow chart" } },
+            text(" above."),
+          ),
+        ),
+      ),
+    ).toBe("See ![flow chart](/api/attachments/abc123) above.\n");
+  });
+
+  it("serializes draw.io diagram blocks as SVG data-URI images", () => {
+    const svg = "data:image/svg+xml;base64,PHN2ZyAvPg==";
+    expect(serializeToMarkdown(doc({ type: "drawio", attrs: { svg } }))).toBe(
+      `![drawio](${svg})\n`,
+    );
+  });
+
+  it("drops a diagram that was never drawn", () => {
+    expect(serializeToMarkdown(doc({ type: "drawio", attrs: { svg: null } }))).toBe("");
+  });
+
   it("serializes blockquote and code block", () => {
     expect(serializeToMarkdown(doc({ type: "blockquote", content: [p(text("quoted"))] }))).toBe(
       "> quoted\n",

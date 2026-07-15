@@ -1,4 +1,6 @@
+import { FilePlus2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/Button";
 import { Logo } from "./Logo";
 import { type NavItem, SidebarNav } from "./SidebarNav";
 import { UserCard } from "./UserCard";
@@ -6,11 +8,18 @@ import { UserCard } from "./UserCard";
 type AppShellProps = {
   items: NavItem[];
   user: { name: string | null; email: string; role: string };
+  canCreate?: boolean;
   signOutAction: () => Promise<void>;
   children: ReactNode;
 };
 
-export function AppShell({ items, user, signOutAction, children }: AppShellProps) {
+export function AppShell({
+  items,
+  user,
+  canCreate = false,
+  signOutAction,
+  children,
+}: AppShellProps) {
   return (
     <div className="min-h-dvh">
       {/* Desktop sidebar */}
@@ -18,6 +27,14 @@ export function AppShell({ items, user, signOutAction, children }: AppShellProps
         <div className="px-4 py-5">
           <Logo />
         </div>
+        {canCreate && (
+          <div className="px-3 pb-3">
+            <Button href="/documents/new" variant="primary" className="w-full">
+              <FilePlus2 size={16} strokeWidth={1.75} aria-hidden />
+              New document
+            </Button>
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto py-1">
           <SidebarNav items={items} />
         </div>

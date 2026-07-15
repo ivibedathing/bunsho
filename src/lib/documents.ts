@@ -1,56 +1,71 @@
-import type { DocumentType, Prisma } from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import { appendAudit } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 
 /** An empty ProseMirror document — the starting content for a new draft. */
 export const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] } as const;
 
-const CODE_PREFIX: Record<DocumentType, string> = {
-  policy: "POL",
-  sop: "SOP",
-  work_instruction: "WI",
-  standard: "STD",
-  other: "DOC",
-};
+const CODE_PREFIX = "DOC";
 
-/** Suggest the next unused doc code for a type, e.g. POL-001 → POL-002. */
-export async function nextDocCode(orgId: string, type: DocumentType): Promise<string> {
-  const prefix = CODE_PREFIX[type];
+/** Suggest the next unused doc code, e.g. DOC-001 → DOC-002. Codes carried over
+ *  from the old per-type prefixes (POL-, SOP-, …) are left alone. */
+export async function nextDocCode(orgId: string): Promise<string> {
   const existing = await prisma.document.findMany({
-    where: { orgId, docCode: { startsWith: `${prefix}-` } },
+    where: { orgId, docCode: { startsWith: `${CODE_PREFIX}-` } },
     select: { docCode: true },
   });
   let max = 0;
   for (const { docCode } of existing) {
-    const n = Number.parseInt(docCode.slice(prefix.length + 1), 10);
+    const n = Number.parseInt(docCode.slice(CODE_PREFIX.length + 1), 10);
     if (Number.isFinite(n) && n > max) max = n;
   }
-  return `${prefix}-${String(max + 1).padStart(3, "0")}`;
+  return `${CODE_PREFIX}-${String(max + 1).padStart(3, "0")}`;
 }
 
 export interface CreateDocumentInput {
   title: string;
-  type: DocumentType;
   docCode: string;
   folderId?: string | null;
+  parentId?: string | null;
   ownerId?: string | null;
   tags?: string[];
+}
+
+/**
+ * Resolve a requested parent page to one this org actually owns. The id arrives
+ * from a form, so an id belonging to another tenant would otherwise nest a page
+ * under a document its org can't see.
+ */
+async function resolveParent(orgId: string, parentId?: string | null): Promise<string | null> {
+  if (!parentId) return null;
+  const parent = await prisma.document.findFirst({
+    where: { id: parentId, orgId },
+    select: { id: true },
+  });
+  if (!parent) throw new Error("Parent page not found");
+  return parent.id;
 }
 
 /**
  * Create a document and its initial (version 1) draft in one transaction, and
  * record the `document_created` audit entry. The draft is mutable (publishedAt
  * null); publishing it is M3.
+ *
+ * A page nested under a parent derives its location from that parent, so any
+ * `folderId` passed alongside a `parentId` is dropped — the DB CHECK
+ * (`documents_child_has_no_folder`) refuses the row otherwise.
  */
 export async function createDocument(orgId: string, actorId: string, input: CreateDocumentInput) {
+  const parentId = await resolveParent(orgId, input.parentId);
+
   return prisma.$transaction(async (tx) => {
     const doc = await tx.document.create({
       data: {
         orgId,
         docCode: input.docCode,
         title: input.title,
-        type: input.type,
-        folderId: input.folderId ?? null,
+        folderId: parentId ? null : (input.folderId ?? null),
+        parentId,
         ownerId: input.ownerId ?? actorId,
         tags: input.tags ?? [],
       },
@@ -73,7 +88,7 @@ export async function createDocument(orgId: string, actorId: string, input: Crea
       actorId,
       targetType: "document",
       targetId: doc.id,
-      metadata: { docCode: doc.docCode, title: doc.title, type: doc.type },
+      metadata: { docCode: doc.docCode, title: doc.title },
     });
 
     return doc;

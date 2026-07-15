@@ -16,6 +16,9 @@ next-env.d.ts
 # prisma generated client
 /src/generated
 
+# vendored draw.io webapp (scripts/fetch-drawio.ts)
+/public/drawio
+
 # testing
 /coverage
 
@@ -40,3 +43,7 @@ yarn-error.log*
 # local dev artifacts (curl cookie jars with session tokens)
 cookies.txt
 c2.txt
+c.jar
+
+# git worktrees created by parallel sessions
+/.claude/worktrees

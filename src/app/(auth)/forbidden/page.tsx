@@ -1,6 +1,6 @@
+import { ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ShieldOff } from "lucide-react";
 
 export default function ForbiddenPage() {
   return (

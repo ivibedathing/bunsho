@@ -1,9 +1,9 @@
 "use client";
 
+import { useActionState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Field";
-import { useActionState } from "react";
-import { type SetupState, createFirstAdminAction } from "./actions";
+import { createFirstAdminAction, type SetupState } from "./actions";
 
 const initial: SetupState = {};
 

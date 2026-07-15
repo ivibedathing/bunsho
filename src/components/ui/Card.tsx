@@ -7,8 +7,8 @@ type CardProps = {
   children: ReactNode;
 };
 
-/** Surface primitive. `raised` is the carbon panel; `paper` is the cream
- *  document surface — the illuminated object on the dark desk. */
+/** Surface primitive. `raised` is the carbon panel; `paper` is the document
+ *  surface — a slightly lifted sheet on the dark desk. */
 export function Card({ variant = "raised", padded = true, className, children }: CardProps) {
   const surface =
     variant === "paper"

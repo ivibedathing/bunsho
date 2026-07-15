@@ -1,8 +1,8 @@
 import nodefs from "node:fs";
 import path from "node:path";
-import { prisma } from "@/lib/db";
 import git from "isomorphic-git";
 import JSZip from "jszip";
+import { prisma } from "@/lib/db";
 import { type ChangeLogEntry, documentToMarkdown } from "./document";
 
 /**
@@ -59,7 +59,6 @@ export async function collectExport(orgId: string): Promise<ExportFile[]> {
       meta: {
         docCode: d.docCode,
         title: d.title,
-        type: d.type,
         version: v.version,
         publishedAt: v.publishedAt,
         author: authorName(v.author),
@@ -131,7 +130,6 @@ export async function rebuildGitRepo(
       meta: {
         docCode: d.docCode,
         title: d.title,
-        type: d.type,
         version: v.version,
         publishedAt: v.publishedAt,
         author: authorName(v.author),
