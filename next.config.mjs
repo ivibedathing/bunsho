@@ -8,6 +8,11 @@ const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
   poweredByHeader: false,
+  // Attachment uploads go through server actions; the default 1 MB body cap
+  // would reject them. Headroom above MAX_ATTACHMENT_BYTES (20 MB).
+  experimental: {
+    serverActions: { bodySizeLimit: "25mb" },
+  },
   // pg-boss (and its pg dependency) must stay a runtime require — bundling it
   // breaks the instrumentation compile in dev ("Can't resolve 'fs'").
   serverExternalPackages: ["pg-boss"],

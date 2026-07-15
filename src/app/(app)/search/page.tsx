@@ -6,7 +6,6 @@ import { Input, Select } from "@/components/ui/Field";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusSeal } from "@/components/ui/StatusSeal";
 import { Table, Td, Th } from "@/components/ui/Table";
-import { DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS } from "@/lib/documentTypes";
 import { listFolders } from "@/lib/folders";
 import { requireUser } from "@/lib/rbac";
 import { type SearchRow, searchDocuments } from "@/lib/search";
@@ -22,7 +21,7 @@ function statusOf(r: SearchRow): string {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; folder?: string; type?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; folder?: string; status?: string }>;
 }) {
   const user = await requireUser();
   const sp = await searchParams;
@@ -34,7 +33,6 @@ export default async function SearchPage({
     searchDocuments(user.orgId, user.role, {
       query,
       folderId: sp.folder || undefined,
-      type: sp.type || undefined,
       status: sp.status || undefined,
     }),
   ]);
@@ -59,14 +57,6 @@ export default async function SearchPage({
             </option>
           ))}
         </Select>
-        <Select name="type" defaultValue={sp.type ?? ""} className="w-auto">
-          <option value="">All types</option>
-          {DOCUMENT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {DOCUMENT_TYPE_LABELS[t]}
-            </option>
-          ))}
-        </Select>
         {!isViewer && (
           <Select name="status" defaultValue={sp.status ?? ""} className="w-auto">
             <option value="">Any status</option>
@@ -84,7 +74,7 @@ export default async function SearchPage({
         <EmptyState
           icon={SearchX}
           title={query ? `No matches for “${query}”` : "No documents found"}
-          hint="Try a shorter query, or loosen the folder and type filters."
+          hint="Try a shorter query, or loosen the folder and status filters."
         />
       ) : (
         <Reveal className="grid gap-2">
@@ -97,7 +87,6 @@ export default async function SearchPage({
                 <Th>Code</Th>
                 <Th>Title</Th>
                 <Th>Status</Th>
-                <Th>Type</Th>
                 <Th>Folder</Th>
               </tr>
             </thead>
@@ -117,9 +106,6 @@ export default async function SearchPage({
                   </Td>
                   <Td>
                     <StatusSeal status={statusOf(r)} />
-                  </Td>
-                  <Td>
-                    {DOCUMENT_TYPE_LABELS[r.type as keyof typeof DOCUMENT_TYPE_LABELS] ?? r.type}
                   </Td>
                   <Td>{r.folderName ?? "—"}</Td>
                 </tr>

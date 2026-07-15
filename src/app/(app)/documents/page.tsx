@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/Field";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusSeal } from "@/components/ui/StatusSeal";
 import { Table, Td, Th } from "@/components/ui/Table";
-import { DOCUMENT_TYPE_LABELS } from "@/lib/documentTypes";
 import { listDocuments } from "@/lib/documents";
 import { listFolders } from "@/lib/folders";
 import { requireRole } from "@/lib/rbac";
@@ -122,7 +121,6 @@ export default async function DocumentsPage({
                 <Th>Code</Th>
                 <Th>Title</Th>
                 <Th>Status</Th>
-                <Th>Type</Th>
                 <Th>Owner</Th>
                 <Th>Folder</Th>
                 <Th>Updated</Th>
@@ -154,7 +152,6 @@ export default async function DocumentsPage({
                     <Td>
                       <StatusSeal status={status} />
                     </Td>
-                    <Td>{DOCUMENT_TYPE_LABELS[d.type]}</Td>
                     <Td>{d.owner?.name ?? d.owner?.email ?? "—"}</Td>
                     <Td>{d.folder?.name ?? "—"}</Td>
                     <Td className="whitespace-nowrap text-ink-muted">{fmtDate(d.updatedAt)}</Td>

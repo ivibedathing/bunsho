@@ -8,9 +8,10 @@
  * control (prosemirror-markdown has no GFM table support). One-way only: the
  * editor always reloads from JSON, never re-parses this Markdown.
  *
- * Supported nodes mirror the editor (StarterKit + link + tables, no cell merge):
- * headings, paragraphs, bold/italic/strike/code, links, bullet/ordered lists
- * (nested), blockquote, code blocks, horizontal rule, hard breaks, GFM tables.
+ * Supported nodes mirror the editor (StarterKit + link + image + tables, no
+ * cell merge): headings, paragraphs, bold/italic/strike/code, links, inline
+ * images, bullet/ordered lists (nested), blockquote, code blocks, horizontal
+ * rule, hard breaks, GFM tables.
  */
 
 export interface PMMark {
@@ -52,10 +53,17 @@ function applyMarks(raw: string, marks: PMMark[]): string {
   return out;
 }
 
+function serializeImage(node: PMNode): string {
+  const src = (node.attrs?.src as string | undefined) ?? "";
+  const alt = escapeText((node.attrs?.alt as string | undefined) ?? "");
+  return `![${alt}](${src})`;
+}
+
 function serializeInline(nodes: PMNode[] | undefined): string {
   return (nodes ?? [])
     .map((node) => {
       if (node.type === "hardBreak") return "\\\n";
+      if (node.type === "image") return serializeImage(node);
       if (node.type === "text") return applyMarks(node.text ?? "", node.marks ?? []);
       return "";
     })

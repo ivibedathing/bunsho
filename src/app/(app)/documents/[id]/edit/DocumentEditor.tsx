@@ -57,8 +57,8 @@ export function DocumentEditor({
 
   return (
     <div className="overflow-hidden rounded-card border border-line bg-carbon-raised shadow-[0_16px_48px_-16px_rgba(0,0,0,0.6)]">
-      {editor && <EditorToolbar editor={editor} />}
-      {/* The writing surface: cream paper, dark ink, focused column. */}
+      {editor && <EditorToolbar editor={editor} documentId={documentId} />}
+      {/* The writing surface: dark sheet, light ink, focused column. */}
       <div className="bg-paper text-paper-ink">
         <div className="mx-auto max-w-[72ch] px-2 py-4 sm:px-6">
           <EditorContent editor={editor} />

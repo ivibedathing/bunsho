@@ -65,6 +65,15 @@ function parseInline(children: InlineToken[]): PMNode[] {
       case "link_close":
         removeMark(marks, "link");
         break;
+      case "image": {
+        // Alt text arrives pre-parsed in children; flatten it back to a string.
+        const alt = (c.children ?? []).map((n) => n.content).join("");
+        out.push({
+          type: "image",
+          attrs: { src: c.attrGet("src") ?? "", alt, title: c.attrGet("title") },
+        });
+        break;
+      }
       case "softbreak":
         out.push({ type: "text", text: " ", marks: withMarks() });
         break;

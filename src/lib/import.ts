@@ -1,4 +1,3 @@
-import type { DocumentType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isValidDocCode, normalizeDocCode } from "@/lib/docCode";
 import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
@@ -8,16 +7,8 @@ import JSZip from "jszip";
 /**
  * Markdown / zip import (PRD §7 F11, v1). Imported content is parsed to
  * ProseMirror JSON and lands in a **Draft** for review — never auto-published.
- * Doc code/title/type come from YAML front matter when present, else inferred.
+ * Doc code/title come from YAML front matter when present, else inferred.
  */
-
-const VALID_TYPES = new Set<DocumentType>([
-  "policy",
-  "sop",
-  "work_instruction",
-  "standard",
-  "other",
-]);
 
 export interface ImportResult {
   created: number;
@@ -68,15 +59,12 @@ export async function importMarkdownFiles(
       const { meta, body } = parseFrontMatter(file.content);
       const baseName = file.name.replace(/\.md$/i, "").split("/").pop() ?? "Imported";
       const title = meta.title || firstHeading(body) || baseName;
-      const type = (
-        meta.type && VALID_TYPES.has(meta.type as DocumentType) ? meta.type : "other"
-      ) as DocumentType;
 
       let code = meta.code ? normalizeDocCode(meta.code) : "";
       if (code && (!isValidDocCode(code) || (await codeTaken(orgId, code)))) code = "";
-      if (!code) code = await nextDocCode(orgId, type);
+      if (!code) code = await nextDocCode(orgId);
 
-      const doc = await createDocument(orgId, actorId, { title, type, docCode: code });
+      const doc = await createDocument(orgId, actorId, { title, docCode: code });
       const json = markdownToProseMirror(body.trim() || `# ${title}`);
       await saveDraft(orgId, doc.id, json);
       created++;

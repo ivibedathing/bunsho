@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select } from "@/components/ui/Field";
-import { DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS } from "@/lib/documentTypes";
 import { useActionState } from "react";
 import { type NewDocState, createDocumentAction } from "../actions";
 
@@ -15,17 +14,8 @@ export function NewDocumentForm({ folders }: { folders: { id: string; name: stri
       <Label text="Title">
         <Input name="title" type="text" required />
       </Label>
-      <Label text="Type">
-        <Select name="type" defaultValue="policy">
-          {DOCUMENT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {DOCUMENT_TYPE_LABELS[t]}
-            </option>
-          ))}
-        </Select>
-      </Label>
       <Label text="Doc code (optional — auto-assigned)">
-        <Input name="docCode" type="text" placeholder="e.g. POL-007" className="font-mono" />
+        <Input name="docCode" type="text" placeholder="e.g. DOC-007" className="font-mono" />
       </Label>
       <Label text="Folder">
         <Select name="folderId" defaultValue="">

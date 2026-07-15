@@ -9,7 +9,6 @@ import { type PMNode, serializeToMarkdown } from "@/lib/markdown/serialize";
 export interface ExportMeta {
   docCode: string;
   title: string;
-  type: string;
   version: number;
   publishedAt: Date;
   author?: string | null;
@@ -33,7 +32,6 @@ export function frontMatter(meta: ExportMeta): string {
     "---",
     `code: ${yaml(meta.docCode)}`,
     `title: ${yaml(meta.title)}`,
-    `type: ${meta.type}`,
     `version: ${meta.version}`,
     `published: ${meta.publishedAt.toISOString()}`,
   ];

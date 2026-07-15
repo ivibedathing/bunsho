@@ -1,3 +1,4 @@
+import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Table from "@tiptap/extension-table";
 import TableCell from "@tiptap/extension-table-cell";
@@ -9,7 +10,8 @@ import StarterKit from "@tiptap/starter-kit";
 /**
  * The single definition of the editor's capabilities — the escape hatch if we
  * ever drop to ProseMirror directly (PRD §8). StarterKit provides headings,
- * lists, bold/italic, blockquote and code; plus links and first-class tables.
+ * lists, bold/italic, blockquote and code; plus links, first-class tables, and
+ * inline images (uploaded as document attachments, referenced by URL).
  * Deliberately NO cell-merge extension — merged cells can't round-trip through
  * GFM Markdown, and faithful Markdown is a hard requirement (PRD §4.3, risk log).
  */
@@ -17,6 +19,9 @@ export function buildEditorExtensions(): Extensions {
   return [
     StarterKit,
     Link.configure({ openOnClick: false, autolink: true }),
+    // `inline: true` keeps images inside paragraphs, matching GFM `![alt](src)`
+    // so they round-trip through the pinned Markdown serializer.
+    Image.configure({ inline: true }),
     Table.configure({ resizable: true }),
     TableRow,
     TableHeader,

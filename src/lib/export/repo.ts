@@ -59,7 +59,6 @@ export async function collectExport(orgId: string): Promise<ExportFile[]> {
       meta: {
         docCode: d.docCode,
         title: d.title,
-        type: d.type,
         version: v.version,
         publishedAt: v.publishedAt,
         author: authorName(v.author),
@@ -131,7 +130,6 @@ export async function rebuildGitRepo(
       meta: {
         docCode: d.docCode,
         title: d.title,
-        type: d.type,
         version: v.version,
         publishedAt: v.publishedAt,
         author: authorName(v.author),

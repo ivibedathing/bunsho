@@ -31,6 +31,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <AppShell
       items={items}
       user={{ name: user.name, email: user.email, role: user.role }}
+      canCreate={canManage}
       signOutAction={doSignOut}
     >
       {children}

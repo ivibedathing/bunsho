@@ -27,14 +27,6 @@ enum Role {
   viewer
 }
 
-enum DocumentType {
-  policy
-  sop
-  work_instruction
-  standard
-  other
-}
-
 enum SuggestionOrigin {
   scheduled
   on_demand
@@ -69,6 +61,8 @@ enum AuditAction {
   user_deactivated
   user_role_changed
   settings_changed
+  attachment_added
+  attachment_deleted
 }
 
 // ───────────────────────── Tenancy ───────────────────────────
@@ -86,6 +80,7 @@ model Organization {
   approvals       Approval[]
   reviews         Review[]
   acknowledgments Acknowledgment[]
+  attachments     Attachment[]
   auditLog        AuditLogEntry[]
   settings        Settings?
 
@@ -129,6 +124,7 @@ model User {
   approvals        Approval[]        @relation("ApprovalApprover")
   reviews          Review[]          @relation("ReviewReviewer")
   acknowledgments  Acknowledgment[]  @relation("AcknowledgmentUser")
+  attachments      Attachment[]      @relation("AttachmentUploader")
 
   @@unique([orgId, email])
   @@index([orgId])
@@ -163,7 +159,6 @@ model Document {
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   docCode   String
   title     String
-  type      DocumentType @default(other)
   ownerId   String?
   owner     User?        @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   folderId  String?
@@ -183,6 +178,7 @@ model Document {
   versions    DocumentVersion[] @relation("DocumentVersions")
   suggestions Suggestion[]
   reviews     Review[]
+  attachments Attachment[]
 
   @@unique([orgId, docCode])
   @@index([orgId])
@@ -226,6 +222,34 @@ model DocumentVersion {
   @@index([orgId])
   @@index([documentId])
   @@map("document_versions")
+}
+
+// ─────────────────────── Attachments ─────────────────────────
+// Files/images attached to a document (not to a version): supporting evidence,
+// diagrams, source spreadsheets. Bytes live in Postgres so the deployment stays
+// exactly two services (PRD §8) and `pg_dump` backups capture everything.
+// Inline editor images reference these rows via /api/attachments/{id}.
+model Attachment {
+  id         String   @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  filename  String
+  mimeType  String
+  size      Int // bytes; capped at upload (MAX_ATTACHMENT_BYTES)
+  sha256    String // integrity fingerprint, recorded in the audit entry
+  data      Bytes
+
+  uploadedById String?
+  uploadedBy   User?  @relation("AttachmentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([documentId])
+  @@map("attachments")
 }
 
 // ─────────────────── AI suggestions queue ────────────────────

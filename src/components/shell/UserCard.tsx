@@ -1,4 +1,5 @@
 import { LogOut } from "lucide-react";
+import Link from "next/link";
 
 type UserCardProps = {
   name: string | null;
@@ -18,15 +19,21 @@ export function UserCard({ name, email, role, signOutAction }: UserCardProps) {
 
   return (
     <div className="flex items-center gap-3 border-t border-line px-4 py-3.5">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gold-wash font-mono text-xs font-semibold text-gold">
-        {initials}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="m-0 truncate text-sm font-medium text-ink">{display}</p>
-        <p className="m-0 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-ink-muted">
-          {role}
-        </p>
-      </div>
+      <Link
+        href="/profile"
+        title="Profile & activity"
+        className="-mx-1.5 flex min-w-0 flex-1 items-center gap-3 rounded-control px-1.5 py-1 no-underline transition-colors hover:bg-gold-wash/50"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gold-wash font-mono text-xs font-semibold text-gold">
+          {initials}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="m-0 truncate text-sm font-medium text-ink">{display}</p>
+          <p className="m-0 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-ink-muted">
+            {role}
+          </p>
+        </div>
+      </Link>
       <form action={signOutAction}>
         <button
           type="submit"

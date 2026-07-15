@@ -1,36 +1,29 @@
-import type { DocumentType, Prisma } from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import { appendAudit } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 
 /** An empty ProseMirror document — the starting content for a new draft. */
 export const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] } as const;
 
-const CODE_PREFIX: Record<DocumentType, string> = {
-  policy: "POL",
-  sop: "SOP",
-  work_instruction: "WI",
-  standard: "STD",
-  other: "DOC",
-};
+const CODE_PREFIX = "DOC";
 
-/** Suggest the next unused doc code for a type, e.g. POL-001 → POL-002. */
-export async function nextDocCode(orgId: string, type: DocumentType): Promise<string> {
-  const prefix = CODE_PREFIX[type];
+/** Suggest the next unused doc code, e.g. DOC-001 → DOC-002. Codes carried over
+ *  from the old per-type prefixes (POL-, SOP-, …) are left alone. */
+export async function nextDocCode(orgId: string): Promise<string> {
   const existing = await prisma.document.findMany({
-    where: { orgId, docCode: { startsWith: `${prefix}-` } },
+    where: { orgId, docCode: { startsWith: `${CODE_PREFIX}-` } },
     select: { docCode: true },
   });
   let max = 0;
   for (const { docCode } of existing) {
-    const n = Number.parseInt(docCode.slice(prefix.length + 1), 10);
+    const n = Number.parseInt(docCode.slice(CODE_PREFIX.length + 1), 10);
     if (Number.isFinite(n) && n > max) max = n;
   }
-  return `${prefix}-${String(max + 1).padStart(3, "0")}`;
+  return `${CODE_PREFIX}-${String(max + 1).padStart(3, "0")}`;
 }
 
 export interface CreateDocumentInput {
   title: string;
-  type: DocumentType;
   docCode: string;
   folderId?: string | null;
   ownerId?: string | null;
@@ -49,7 +42,6 @@ export async function createDocument(orgId: string, actorId: string, input: Crea
         orgId,
         docCode: input.docCode,
         title: input.title,
-        type: input.type,
         folderId: input.folderId ?? null,
         ownerId: input.ownerId ?? actorId,
         tags: input.tags ?? [],
@@ -73,7 +65,7 @@ export async function createDocument(orgId: string, actorId: string, input: Crea
       actorId,
       targetType: "document",
       targetId: doc.id,
-      metadata: { docCode: doc.docCode, title: doc.title, type: doc.type },
+      metadata: { docCode: doc.docCode, title: doc.title },
     });
 
     return doc;

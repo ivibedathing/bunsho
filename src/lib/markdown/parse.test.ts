@@ -34,6 +34,14 @@ describe("markdownToProseMirror", () => {
     expect(doc.content?.[0]?.content).toHaveLength(2);
   });
 
+  it("parses inline images with src + alt", () => {
+    const doc = markdownToProseMirror("![diagram](/api/attachments/abc123)");
+    const img = doc.content?.[0]?.content?.[0];
+    expect(img?.type).toBe("image");
+    expect(img?.attrs?.src).toBe("/api/attachments/abc123");
+    expect(img?.attrs?.alt).toBe("diagram");
+  });
+
   it("parses a GFM table into table/row/cell nodes", () => {
     const doc = markdownToProseMirror("| A | B |\n| --- | --- |\n| 1 | 2 |");
     const table = doc.content?.[0];
@@ -55,6 +63,7 @@ describe("serialize ∘ parse round-trip", () => {
     "**bold** and *italic* text.\n",
     "> quoted line\n",
     "| Control | Owner |\n| --- | --- |\n| MFA | IT |\n",
+    "Diagram: ![flow](/api/attachments/abc123)\n",
   ];
   for (const md of cases) {
     it(`stabilizes: ${JSON.stringify(md.slice(0, 24))}…`, () => {
