@@ -44,7 +44,7 @@
     "@tiptap/extension-table-row": "2.27.2",
     "@tiptap/pm": "2.27.2",
     "@tiptap/react": "2.27.2",
-    "@tiptap/starter-kit": "2.27.2",
+    "@tiptap/starter-kit": "3.27.4",
     "diff": "^9.0.0",
     "isomorphic-git": "1.38.7",
     "jszip": "3.10.1",
