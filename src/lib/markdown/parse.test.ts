@@ -42,6 +42,23 @@ describe("markdownToProseMirror", () => {
     expect(img?.attrs?.alt).toBe("diagram");
   });
 
+  it("parses an SVG data-URI image into a block-level drawio node", () => {
+    const svg = "data:image/svg+xml;base64,PHN2ZyAvPg==";
+    const doc = markdownToProseMirror(`before\n\n![drawio](${svg})\n\nafter\n`);
+    expect(doc.content).toEqual([
+      { type: "paragraph", content: [{ type: "text", text: "before" }] },
+      { type: "drawio", attrs: { svg } },
+      { type: "paragraph", content: [{ type: "text", text: "after" }] },
+    ]);
+  });
+
+  it("splits a diagram out of a paragraph that also holds text", () => {
+    const svg = "data:image/svg+xml;base64,PHN2ZyAvPg==";
+    const doc = markdownToProseMirror(`Flow: ![drawio](${svg})\n`);
+    expect(types(doc)).toEqual(["paragraph", "drawio"]);
+    expect(doc.content?.[0]?.content?.[0]?.text).toBe("Flow: ");
+  });
+
   it("parses a GFM table into table/row/cell nodes", () => {
     const doc = markdownToProseMirror("| A | B |\n| --- | --- |\n| 1 | 2 |");
     const table = doc.content?.[0];
@@ -64,6 +81,7 @@ describe("serialize ∘ parse round-trip", () => {
     "> quoted line\n",
     "| Control | Owner |\n| --- | --- |\n| MFA | IT |\n",
     "Diagram: ![flow](/api/attachments/abc123)\n",
+    "![drawio](data:image/svg+xml;base64,PHN2ZyAvPg==)\n",
   ];
   for (const md of cases) {
     it(`stabilizes: ${JSON.stringify(md.slice(0, 24))}…`, () => {

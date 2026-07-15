@@ -15,6 +15,7 @@ import {
   Table,
   TextQuote,
   Trash2,
+  Workflow,
 } from "lucide-react";
 import { type ReactNode, useRef } from "react";
 
@@ -161,6 +162,13 @@ export function EditorToolbar({ editor, documentId }: { editor: Editor; document
           if (file) void uploadImage(file);
         }}
       />
+      <Btn
+        title="Insert diagram"
+        active={editor.isActive("drawio")}
+        onClick={() => editor.chain().focus().insertDrawio().run()}
+      >
+        <Workflow {...ICON} aria-hidden />
+      </Btn>
       <Sep />
       <Btn
         title="Insert table"
