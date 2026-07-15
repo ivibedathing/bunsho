@@ -166,8 +166,17 @@ model Document {
   type      DocumentType @default(other)
   ownerId   String?
   owner     User?        @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  // A page may nest under another page. A nested page derives its location from
+  // its parent, so `folderId` is null for children: the folder of record is the
+  // root ancestor's. A DB CHECK enforces that (`documents_child_has_no_folder`).
+  // `Restrict` mirrors FolderTree — deleting a page with children is refused
+  // rather than silently cascading a subtree away.
   folderId  String?
   folder    Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  parentId  String?
+  parent    Document?    @relation("DocumentTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children  Document[]   @relation("DocumentTree")
   tags      String[]     @default([])
 
   // Projection of the live published version. Null until first publish.
@@ -187,6 +196,7 @@ model Document {
   @@unique([orgId, docCode])
   @@index([orgId])
   @@index([folderId])
+  @@index([parentId])
   @@map("documents")
 }
 

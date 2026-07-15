@@ -33,16 +33,38 @@ export interface CreateDocumentInput {
   type: DocumentType;
   docCode: string;
   folderId?: string | null;
+  parentId?: string | null;
   ownerId?: string | null;
   tags?: string[];
+}
+
+/**
+ * Resolve a requested parent page to one this org actually owns. The id arrives
+ * from a form, so an id belonging to another tenant would otherwise nest a page
+ * under a document its org can't see.
+ */
+async function resolveParent(orgId: string, parentId?: string | null): Promise<string | null> {
+  if (!parentId) return null;
+  const parent = await prisma.document.findFirst({
+    where: { id: parentId, orgId },
+    select: { id: true },
+  });
+  if (!parent) throw new Error("Parent page not found");
+  return parent.id;
 }
 
 /**
  * Create a document and its initial (version 1) draft in one transaction, and
  * record the `document_created` audit entry. The draft is mutable (publishedAt
  * null); publishing it is M3.
+ *
+ * A page nested under a parent derives its location from that parent, so any
+ * `folderId` passed alongside a `parentId` is dropped — the DB CHECK
+ * (`documents_child_has_no_folder`) refuses the row otherwise.
  */
 export async function createDocument(orgId: string, actorId: string, input: CreateDocumentInput) {
+  const parentId = await resolveParent(orgId, input.parentId);
+
   return prisma.$transaction(async (tx) => {
     const doc = await tx.document.create({
       data: {
@@ -50,7 +72,8 @@ export async function createDocument(orgId: string, actorId: string, input: Crea
         docCode: input.docCode,
         title: input.title,
         type: input.type,
-        folderId: input.folderId ?? null,
+        folderId: parentId ? null : (input.folderId ?? null),
+        parentId,
         ownerId: input.ownerId ?? actorId,
         tags: input.tags ?? [],
       },

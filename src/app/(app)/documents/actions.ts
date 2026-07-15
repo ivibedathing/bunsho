@@ -34,6 +34,8 @@ export async function createDocumentAction(
   const type = String(formData.get("type") ?? "other") as DocumentType;
   const folderRaw = String(formData.get("folderId") ?? "");
   const folderId = folderRaw === "" ? null : folderRaw;
+  const parentRaw = String(formData.get("parentId") ?? "");
+  const parentId = parentRaw === "" ? null : parentRaw;
   let docCode = normalizeDocCode(String(formData.get("docCode") ?? ""));
 
   if (!title) return { error: "Title is required." };
@@ -51,7 +53,21 @@ export async function createDocumentAction(
     if (clash) return { error: `Doc code ${docCode} is already in use.` };
   }
 
-  const doc = await createDocument(user.orgId, user.id, { title, type, docCode, folderId });
+  if (parentId) {
+    const parent = await prisma.document.findFirst({
+      where: { id: parentId, orgId: user.orgId },
+      select: { id: true },
+    });
+    if (!parent) return { error: "That parent page no longer exists." };
+  }
+
+  const doc = await createDocument(user.orgId, user.id, {
+    title,
+    type,
+    docCode,
+    folderId,
+    parentId,
+  });
   redirect(`/documents/${doc.id}/edit`);
 }
 
