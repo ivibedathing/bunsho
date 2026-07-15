@@ -10,13 +10,13 @@ import { Drawio } from "./drawio";
 
 /**
  * The single definition of the editor's capabilities — the escape hatch if we
- * ever drop to ProseMirror directly (PRD §8). StarterKit provides headings,
+ * ever drop to ProseMirror directly (DECISIONS.md). StarterKit provides headings,
  * lists, bold/italic, blockquote and code; plus links, first-class tables,
  * inline images (uploaded as document attachments, referenced by URL), and
  * draw.io diagram blocks (stored as editable-SVG data URIs, so they round-trip
  * through Markdown as plain images). Deliberately NO cell-merge extension —
  * merged cells can't round-trip through GFM Markdown, and faithful Markdown is
- * a hard requirement (PRD §4.3, risk log).
+ * a hard requirement (DECISIONS.md).
  */
 export function buildEditorExtensions(): Extensions {
   return [

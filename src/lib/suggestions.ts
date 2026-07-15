@@ -3,7 +3,7 @@ import { appendAudit } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 
 /**
- * The AI suggestions queue (PRD §7 F8f/g). AI output — deterministic checks or
+ * The AI suggestions queue (DECISIONS.md). AI output — deterministic checks or
  * LLM review — lands here as `pending`; nothing touches a document until a human
  * accepts. Accepting a *content* suggestion applies it to the draft (creating one
  * if needed) and is audit-logged as AI-originated with the approving human named.

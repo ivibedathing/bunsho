@@ -1,6 +1,6 @@
 /**
  * `verify-audit` — walk every organization's audit hash chain and confirm it is
- * intact (PRD §7 F7). Exits non-zero if any chain is broken, so it can gate CI,
+ * intact (DECISIONS.md). Exits non-zero if any chain is broken, so it can gate CI,
  * backups, or a scheduled integrity check.
  *
  *   pnpm verify-audit

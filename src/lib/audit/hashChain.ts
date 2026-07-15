@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 /**
- * The tamper-evident audit log is an append-only hash chain (PRD §7 F7, §8):
+ * The tamper-evident audit log is an append-only hash chain (DECISIONS.md, §8):
  *
  *     hash = sha256(prevHash || canonical(row))
  *

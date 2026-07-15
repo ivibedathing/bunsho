@@ -6,7 +6,7 @@ import { verifyPassword } from "@/lib/password";
 
 /**
  * Auth.js (NextAuth v5) configuration — Credentials + optional generic OIDC,
- * with JWT sessions (PRD §6, §8).
+ * with JWT sessions (DECISIONS.md).
  *
  * Why JWT and not database sessions: the Credentials provider is incompatible
  * with Auth.js database sessions, so no `Account`/`Session` adapter tables are
@@ -45,7 +45,7 @@ const providers: Provider[] = [
 ];
 
 // Generic OIDC provider, enabled only when configured — be a client to the org's
-// existing IdP, never host one (PRD §6). Users are provisioned on first sign-in.
+// existing IdP, never host one (DECISIONS.md). Users are provisioned on first sign-in.
 const oidcEnabled =
   !!process.env.OIDC_ISSUER && !!process.env.OIDC_CLIENT_ID && !!process.env.OIDC_CLIENT_SECRET;
 
@@ -69,14 +69,14 @@ async function resolveOidcUser(email: string, name: string | null) {
   const existing = await prisma.user.findFirst({ where: { email } });
   if (existing) return existing.active ? existing : null; // deny deactivated accounts
 
-  // New SSO users land as viewers; an Admin promotes them (PRD §3 roles).
+  // New SSO users land as viewers; an Admin promotes them (DECISIONS.md — roles).
   return prisma.user.create({
     data: { orgId: org.id, email, name, role: "viewer", active: true },
   });
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Self-hosted behind the org's own proxy — trust the deployment host (PRD §6).
+  // Self-hosted behind the org's own proxy — trust the deployment host (DECISIONS.md).
   trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/signin" },

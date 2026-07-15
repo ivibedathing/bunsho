@@ -2,8 +2,8 @@
  * Deterministic ProseMirror-JSON → GFM Markdown serializer.
  *
  * The canonical draft format is ProseMirror JSON; at publish we freeze a Markdown
- * rendering that must be byte-identical on every run (PRD §6 determinism, §8
- * "Markdown frozen at publish via a pinned serializer"). This is that pinned
+ * rendering that must be byte-identical on every run — Markdown is frozen at
+ * publish via a pinned serializer (DECISIONS.md — determinism). This is that pinned
  * serializer — hand-written so table output and escaping are fully under our
  * control (prosemirror-markdown has no GFM table support). One-way only: the
  * editor always reloads from JSON, never re-parses this Markdown.

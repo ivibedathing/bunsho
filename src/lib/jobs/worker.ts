@@ -15,7 +15,7 @@ export async function runScheduledChecks(): Promise<{ orgs: number; created: num
 
 /**
  * Register the check worker and, when `AI_SCAN_CRON` is set, the recurring
- * schedule (Admin-configurable cadence, PRD F8d). Called once at server start
+ * schedule (Admin-configurable cadence, DECISIONS.md). Called once at server start
  * from instrumentation.ts, guarded by `AI_SCHEDULED_CHECKS`.
  */
 export async function startCheckWorker(): Promise<void> {

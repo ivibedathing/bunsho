@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 /**
  * Document attachments (F-side of the editor: images, evidence files, source
  * spreadsheets). Bytes are stored in Postgres so the deployment stays exactly
- * two services (PRD §8); this is fine at compliance-doc scale but is why the
+ * two services (DECISIONS.md); this is fine at compliance-doc scale but is why the
  * per-file cap below exists. Files are served only through
  * `/api/attachments/[id]`, which re-checks auth + org scope on every read.
  */

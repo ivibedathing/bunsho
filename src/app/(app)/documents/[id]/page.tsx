@@ -65,7 +65,7 @@ export default async function DocumentDetailPage({
   const current = doc.currentPublishedVersion;
   const isAdmin = user.role === "admin";
   const canManage = user.role !== "viewer";
-  // Viewers may only see current, published, non-retired documents (PRD §3).
+  // Viewers may only see current, published, non-retired documents (DECISIONS.md — roles).
   if (!canManage && status !== "published") notFound();
 
   const aiEnabled = isAiEnabled();

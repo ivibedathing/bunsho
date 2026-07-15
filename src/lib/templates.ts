@@ -3,7 +3,7 @@ import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
 import { markdownToProseMirror } from "@/lib/markdown/parse";
 
 /**
- * Starter template pack (PRD §7 F10): a small set of SOC 2-oriented policies and
+ * Starter template pack (DECISIONS.md): a small set of SOC 2-oriented policies and
  * procedures, original content licensed CC BY 4.0. Offered on first run so a
  * fresh instance isn't an empty screen. Seeded as Drafts for the org to adapt.
  */
