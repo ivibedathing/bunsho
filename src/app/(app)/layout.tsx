@@ -18,6 +18,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const items: NavItem[] = canManage
     ? [
         { href: "/", label: "Home", icon: "home" },
+        { href: "/explorer", label: "Explorer", icon: "explorer" },
         { href: "/documents", label: "Documents", icon: "documents" },
         { href: "/search", label: "Search", icon: "search" },
         { href: "/documents/import", label: "Import", icon: "import" },
