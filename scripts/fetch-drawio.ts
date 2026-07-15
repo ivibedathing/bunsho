@@ -39,8 +39,7 @@ async function main(): Promise<void> {
   const res = await fetch(WAR_URL, { redirect: "follow" });
   if (!res.ok) {
     throw new Error(
-      `fetch-drawio: download failed (${res.status} ${res.statusText}). ` +
-        "Offline builds can set DRAWIO_SKIP_FETCH=1 and point NEXT_PUBLIC_DRAWIO_URL elsewhere.",
+      `fetch-drawio: download failed (${res.status} ${res.statusText}). Offline builds can set DRAWIO_SKIP_FETCH=1 and point NEXT_PUBLIC_DRAWIO_URL elsewhere.`,
     );
   }
   const bytes = Buffer.from(await res.arrayBuffer());
