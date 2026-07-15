@@ -1,6 +1,8 @@
 "use server";
 
 import path from "node:path";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createAttachment, deleteAttachment, isInlineImageType } from "@/lib/attachments";
 import { runAiReview, runAiSummary, runDocumentChecks } from "@/lib/checks";
 import { prisma } from "@/lib/db";
@@ -13,8 +15,6 @@ import { getOrCreateDraft, publishDocument, restoreVersion, retireDocument } fro
 import { requireRole } from "@/lib/rbac";
 import { acceptSuggestion, rejectSuggestion } from "@/lib/suggestions";
 import { seedStarterTemplates } from "@/lib/templates";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 const EXPORT_REPO_PATH =
   process.env.EXPORT_REPO_PATH ?? path.join(process.cwd(), ".data", "export-repo");

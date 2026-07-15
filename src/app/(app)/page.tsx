@@ -1,3 +1,5 @@
+import { Archive, FilePlus2, FileText, PenLine, Search, Sparkles, Stamp } from "lucide-react";
+import Link from "next/link";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { ProgressRing } from "@/components/motion/ProgressRing";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
@@ -12,8 +14,6 @@ import type { Role } from "@/generated/prisma/client";
 import { documentStats, recentDocuments } from "@/lib/dashboard";
 import { requireUser } from "@/lib/rbac";
 import { searchDocuments } from "@/lib/search";
-import { Archive, FilePlus2, FileText, PenLine, Search, Sparkles, Stamp } from "lucide-react";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 

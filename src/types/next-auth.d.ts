@@ -1,5 +1,5 @@
-import type { Role } from "@/generated/prisma/client";
 import type { DefaultSession } from "next-auth";
+import type { Role } from "@/generated/prisma/client";
 
 // Carry our identity claims on the session/token. Authoritative role + active
 // status are resolved fresh from the DB in `requireUser` (src/lib/rbac.ts), so

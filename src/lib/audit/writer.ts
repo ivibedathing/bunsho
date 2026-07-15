@@ -2,9 +2,9 @@ import type { ActorType, AuditAction, Prisma, PrismaClient } from "@/generated/p
 import { Prisma as PrismaNS } from "@/generated/prisma/client";
 import {
   type CanonicalAuditRow,
+  computeEntryHash,
   type StoredAuditEntry,
   type VerifyResult,
-  computeEntryHash,
   verifyChain,
 } from "./hashChain";
 

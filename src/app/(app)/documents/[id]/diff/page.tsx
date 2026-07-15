@@ -1,3 +1,5 @@
+import { MoveRight } from "lucide-react";
+import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/Reveal";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -6,8 +8,6 @@ import { prisma } from "@/lib/db";
 import { diffMarkdown } from "@/lib/diff";
 import { versionMarkdown } from "@/lib/lifecycle";
 import { requireRole } from "@/lib/rbac";
-import { MoveRight } from "lucide-react";
-import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 

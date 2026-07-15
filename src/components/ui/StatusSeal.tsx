@@ -34,7 +34,10 @@ const FALLBACK: SealStyle = {
 export function StatusSeal({
   status,
   variant = "chip",
-}: { status: string; variant?: "chip" | "seal" }) {
+}: {
+  status: string;
+  variant?: "chip" | "seal";
+}) {
   const s = SEALS[status] ?? FALLBACK;
   const label = s.label || status;
   if (variant === "seal") {

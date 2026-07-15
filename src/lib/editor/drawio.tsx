@@ -97,6 +97,7 @@ function DrawioNodeView({ node, editor, updateAttributes, deleteNode, selected }
   return (
     <NodeViewWrapper className="group relative my-4" data-drawio data-drag-handle>
       {svg ? (
+        // biome-ignore lint/performance/noImgElement: svg is an inline data URI produced by the editor, not a static asset next/image can optimise
         <img
           src={svg}
           alt="Diagram"
@@ -178,7 +179,6 @@ function DrawioOverlay({
   }, [origin, initialSvg, onSave, onClose]);
 
   return createPortal(
-    // biome-ignore lint/a11y/useSemanticElements: native <dialog> modality would fight the editor's focus management; draw.io manages focus inside the iframe
     <div
       role="dialog"
       aria-label="Diagram editor"
