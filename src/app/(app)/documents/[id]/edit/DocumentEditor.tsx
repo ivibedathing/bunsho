@@ -23,7 +23,10 @@ export function DocumentEditor({
     async (json: JSONContent) => {
       setStatus("saving");
       try {
-        await saveDraftAction(documentId, json);
+        // Stringified because ProseMirror attrs objects have a null prototype,
+        // which React refuses to pass into a server action (the call 500s and
+        // the draft is silently never saved).
+        await saveDraftAction(documentId, JSON.stringify(json));
         setStatus("saved");
       } catch {
         setStatus("error");
@@ -50,7 +53,7 @@ export function DocumentEditor({
     return () => {
       if (timer.current) {
         clearTimeout(timer.current);
-        if (editor) void saveDraftAction(documentId, editor.getJSON());
+        if (editor) void saveDraftAction(documentId, JSON.stringify(editor.getJSON()));
       }
     };
   }, [editor, documentId]);

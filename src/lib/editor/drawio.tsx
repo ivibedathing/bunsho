@@ -102,7 +102,9 @@ function DrawioNodeView({ node, editor, updateAttributes, deleteNode, selected }
           alt="Diagram"
           draggable={false}
           onDoubleClick={editor.isEditable ? () => setEditing(true) : undefined}
-          className={`mx-auto block h-auto max-w-full rounded-control bg-white p-3 ${
+          // The exported SVG styles itself with light-dark(); [color-scheme:dark]
+          // makes it render its dark variant to match the surrounding UI.
+          className={`mx-auto block h-auto max-w-full rounded-control bg-carbon p-3 [color-scheme:dark] ${
             selected ? "outline outline-2 outline-gold" : ""
           }`}
         />

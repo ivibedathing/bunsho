@@ -64,10 +64,16 @@ export async function createFolderAction(formData: FormData): Promise<void> {
   }
 }
 
-/** Autosave a draft from the editor. Bound arg (not a form) — RBAC + org scoped. */
-export async function saveDraftAction(documentId: string, prosemirrorJson: unknown): Promise<void> {
+/**
+ * Autosave a draft from the editor. Bound arg (not a form) — RBAC + org scoped.
+ * The document travels as a JSON string: ProseMirror attrs objects have a null
+ * prototype, and React serializes those into server-action arguments as opaque
+ * temporary references — any node with attributes (headings, diagrams, images,
+ * tables) would make the save throw.
+ */
+export async function saveDraftAction(documentId: string, prosemirrorJson: string): Promise<void> {
   const user = await requireRole("admin", "editor");
-  await saveDraft(user.orgId, documentId, prosemirrorJson);
+  await saveDraft(user.orgId, documentId, JSON.parse(prosemirrorJson));
 }
 
 export async function publishAction(formData: FormData): Promise<void> {
