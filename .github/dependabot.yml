@@ -19,6 +19,13 @@ updates:
       # build breaks. Revisit once Next supports the native port.
       - dependency-name: typescript
         update-types: [version-update:semver-major]
+      # The TipTap family is pinned to exact versions on purpose (DECISIONS.md,
+      # 2026-07-14) and must move as a set: majors arrive ungrouped, so a lone
+      # `@tiptap/starter-kit` 2→3 bump once landed against a v2 `@tiptap/core`,
+      # putting two copies of TipTap in the tree and breaking the editor's
+      # command types. Upgrade the whole family deliberately, in one PR.
+      - dependency-name: "@tiptap/*"
+        update-types: [version-update:semver-major]
     groups:
       prod-minor-patch:
         dependency-type: production

@@ -32,7 +32,9 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 WORKDIR /app
 
-# openssl for the Prisma query engine; unprivileged user to run as.
+# Unprivileged user to run as. (openssl was here for the Prisma query engine;
+# Prisma 7 dropped the Rust engine, so it is now vestigial — left in place to
+# keep this change to the dependency fix, but it can go.)
 RUN apt-get update && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system --gid 1001 nodejs \
@@ -43,8 +45,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Prisma generated client + query engine (ensure the engine ships even if the
-# Next.js tracer misses the native binary).
+# Prisma generated client. Copied explicitly because it lives outside
+# node_modules, where the Next.js tracer doesn't always follow it.
 COPY --from=builder --chown=nextjs:nodejs /app/src/generated/prisma ./src/generated/prisma
 
 # Migrations + schema so `prisma migrate deploy` can run on startup / release.
