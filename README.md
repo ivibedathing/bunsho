@@ -66,12 +66,13 @@ pnpm dev                  # localhost:3000
 
 | Command | Does |
 |---|---|
-| `pnpm check` | Lint + typecheck + test — what CI gates on |
+| `pnpm check` | Lint + typecheck + unit tests — what CI gates on |
+| `pnpm test:db` | Integration tests against a real Postgres (scratch DB, auto-created) |
 | `pnpm db:migrate` | Create and apply a migration in development |
 | `pnpm build` | Production build |
 | `pnpm verify-audit` | Walk every org's audit chain; non-zero exit if broken |
 
-**Stack:** Next.js (TypeScript, standalone) · PostgreSQL · Prisma · Auth.js v5 · TipTap 2.x (pinned) · pg-boss · Tailwind v4 · isomorphic-git · Biome · Vitest.
+**Stack:** Next.js (TypeScript, standalone) · PostgreSQL · Prisma · Auth.js v5 · TipTap · pg-boss · Tailwind v4 · isomorphic-git · Biome · Vitest.
 
 Two things worth knowing before you write code: the database enforces the invariants the ORM can't, so read the trigger migrations in `prisma/migrations/` before the TypeScript — and every audit append must run inside a transaction, or you will silently fork the hash chain. Both are covered in [CLAUDE.md](./CLAUDE.md).
 
