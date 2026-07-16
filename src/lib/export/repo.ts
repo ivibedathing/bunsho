@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { type ChangeLogEntry, documentToMarkdown } from "./document";
 
 /**
- * One-way git/Markdown export (PRD §7 F9). The export is a deterministic
+ * One-way git/Markdown export (DECISIONS.md). The export is a deterministic
  * projection of the DB: current published docs as `<folder>/<code>.md`, and a
  * git history where each published version is one commit (author timestamp =
  * publish time), so a rebuild is byte-identical and history-stable.

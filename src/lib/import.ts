@@ -5,7 +5,7 @@ import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
 import { markdownToProseMirror } from "@/lib/markdown/parse";
 
 /**
- * Markdown / zip import (PRD §7 F11, v1). Imported content is parsed to
+ * Markdown / zip import (DECISIONS.md, v1). Imported content is parsed to
  * ProseMirror JSON and lands in a **Draft** for review — never auto-published.
  * Doc code/title come from YAML front matter when present, else inferred.
  */

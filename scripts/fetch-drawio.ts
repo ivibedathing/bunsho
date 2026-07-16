@@ -1,10 +1,9 @@
 /**
  * Vendors the draw.io webapp into `public/drawio/` so diagram editing works
  * air-gapped: the app image serves the editor same-origin, with no runtime
- * dependency on embed.diagrams.net (PRD §8 self-hosted; decision log
- * 2026-07-15). Runs via the `prebuild`/`predev` hooks and exits immediately
- * once the files exist, so only the first run (and the Docker build stage,
- * which has network) ever downloads.
+ * dependency on embed.diagrams.net (DECISIONS.md, 2026-07-15). Runs via the
+ * `prebuild`/`predev` hooks and exits immediately once the files exist, so only
+ * the first run (and the Docker build stage, which has network) ever downloads.
  *
  * The pinned `draw.war` release asset is a plain zip of the static webapp —
  * no Java involved; WEB-INF/META-INF servlet metadata is skipped.

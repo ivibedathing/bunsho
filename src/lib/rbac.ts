@@ -14,7 +14,7 @@ export interface CurrentUser {
 /**
  * Resolve the signed-in user authoritatively from the database. The JWT only
  * carries the user id; role and `active` are read fresh here so role changes and
- * deactivations take effect immediately (PRD §5 permission matrix). Returns null
+ * deactivations take effect immediately (DECISIONS.md — permission matrix). Returns null
  * when unauthenticated or when the account is gone/deactivated.
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {

@@ -2,7 +2,7 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 
 // scrypt from Node's standard library — no native dependency, keeping the
-// footprint small (PRD §4.5). Format: `scrypt$<saltHex>$<derivedHex>`.
+// footprint small (DECISIONS.md — smallest-footprint principle). Format: `scrypt$<saltHex>$<derivedHex>`.
 const scryptAsync = promisify(scrypt);
 const KEY_LEN = 64;
 

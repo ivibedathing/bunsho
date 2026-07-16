@@ -10,8 +10,8 @@ function contentDisposition(kind: "inline" | "attachment", filename: string): st
 }
 
 // Serve one attachment. Auth + org scope on every read; viewers may only reach
-// attachments of current, published, non-retired documents (PRD §3 — the same
-// rule the document detail page applies).
+// attachments of current, published, non-retired documents (DECISIONS.md — roles;
+// the same rule the document detail page applies).
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },

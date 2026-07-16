@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 /**
- * Thin, env-gated wrapper over the Anthropic API (PRD §8 — SDK called from the
+ * Thin, env-gated wrapper over the Anthropic API (DECISIONS.md — SDK called from the
  * app, suggestion-only, outbound HTTPS, cleanly disableable). AI features are OFF
  * unless `ANTHROPIC_API_KEY` is set and `AI_ENABLED` is not "false".
  *

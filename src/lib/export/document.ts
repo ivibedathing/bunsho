@@ -1,7 +1,7 @@
 import { type PMNode, serializeToMarkdown } from "@/lib/markdown/serialize";
 
 /**
- * The exported form of a published document (PRD §7 F9): YAML front matter +
+ * The exported form of a published document (DECISIONS.md): YAML front matter +
  * Markdown body + an auto-maintained change-log table. Deterministic — the same
  * DB state always produces byte-identical output, so a git rebuild is stable.
  */

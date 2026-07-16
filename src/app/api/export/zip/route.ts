@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
-// Zip download of the current published Markdown set (PRD §7 F9). Managers only.
+// Zip download of the current published Markdown set (DECISIONS.md). Managers only.
 export async function GET(): Promise<Response> {
   const user = await getCurrentUser();
   if (!user || user.role === "viewer") {

@@ -4,7 +4,7 @@ const workerModule = fileURLToPath(new URL("./src/lib/jobs/worker.ts", import.me
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Single self-contained server bundle for the one Docker image (PRD §8).
+  // Single self-contained server bundle for the one Docker image (DECISIONS.md).
   output: "standalone",
   reactStrictMode: true,
   poweredByHeader: false,
