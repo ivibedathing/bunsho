@@ -5,11 +5,14 @@
  *
  *   pnpm verify-audit
  */
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { verifyOrgChain } from "../src/lib/audit/writer";
 
 async function main(): Promise<number> {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  });
   try {
     const orgs = await prisma.organization.findMany({ select: { id: true, name: true } });
     if (orgs.length === 0) {
