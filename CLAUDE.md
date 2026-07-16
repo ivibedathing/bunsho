@@ -16,16 +16,21 @@ docker compose up -d db      # Postgres is the only external service
 pnpm db:deploy               # apply migrations, then:
 pnpm dev                     # http://localhost:3000
 
-pnpm check                   # lint + typecheck + test — what CI gates on
+pnpm check                   # lint + typecheck + unit tests — what CI gates on
+pnpm test                    # unit project only (pure logic, no infrastructure)
+pnpm test:db                 # integration project — needs a real Postgres
+pnpm test:all                # both projects
 pnpm db:migrate              # create/apply a migration in development
 pnpm verify-audit            # walk every org's audit hash chain; non-zero exit if broken
 ```
 
-Single test: `pnpm vitest run src/lib/audit/hashChain.test.ts`, or `pnpm vitest run -t "name"`. Vitest only collects `src/**/*.{test,spec}.ts` — a `.tsx` test will be silently ignored. CI additionally runs `pnpm build` and applies migrations against a clean Postgres 17.
+Single test: `pnpm vitest run --project unit src/lib/audit/hashChain.test.ts`, or add `-t "name"`. Note `pnpm check` runs **unit only** — run `pnpm test:db` yourself before claiming a lifecycle/audit change works. CI runs both projects, plus `pnpm build` and a migrations-apply job against a clean Postgres 17.
+
+Vitest collects only `src/**/*.{test,spec}.ts` — a `.tsx` test is silently ignored. The split is by filename: `*.db.test.ts` is integration, everything else is unit.
 
 `predev`/`prebuild` run `scripts/fetch-drawio.ts`, which downloads and SHA-256-verifies a pinned draw.io release into `public/drawio/` so diagram editing works air-gapped. It exits immediately once the files exist; `DRAWIO_SKIP_FETCH=1` skips it when offline.
 
-Prod Docker on port 3000 shares the dev database — use a scratch DB for anything that mutates data.
+`pnpm dev` on port 3000 reads the dev database from `.env` — never point mutating tests at it. Integration tests handle this themselves: they run against a scratch database (`TEST_DATABASE_URL`, default `bunsho_test`), created and migrated automatically and `TRUNCATE`d between tests, and a guard in `src/test/env.ts` refuses any database whose name doesn't look like scratch.
 
 ## The database is the rulebook, not Prisma
 
@@ -34,6 +39,7 @@ Read `prisma/migrations/*_audit_triggers/migration.sql` and `*_draft_versions/mi
 - **`audit_log` is append-only**; `approvals`/`reviews`/`acknowledgments` are write-once (dormant in v1 — they ship early because write-once evidence tables can't be retrofitted onto history).
 - **Published `document_versions` are frozen** — only `retiredAt`/`supersededAt` may still change. The trigger checks `OLD.publishedAt IS NOT NULL`, so it is self-arming: the publishing write passes, every later write to that row is rejected. `DELETE` is intentionally not blocked.
 - **At most one open draft per document**, via trigger rather than a partial unique index (which would show up as Prisma drift).
+- **A nested page carries no folder** — `Document.parentId` is a self-relation, and a child derives its location from its root ancestor, so `folderId` must be null. A `documents_child_has_no_folder` CHECK enforces it. Both `Document` and `Folder` trees use `onDelete: Restrict`: deleting a node with children is refused rather than silently cascading a subtree away.
 
 The triggers enforce append-only, **not hash correctness** — chain integrity is entirely application-enforced. The DB only guarantees you cannot clean up afterward.
 
@@ -89,6 +95,18 @@ Note the two exports don't agree on file set: the zip path filters out retired d
 Staleness and broken-reference checks are deterministic (no LLM) and run against every published doc; summary and review call the API. Gated by `isAiEnabled()`: the key is required, but `AI_ENABLED` is opt-*out* only, so a key with `AI_ENABLED` unset means AI is **on**. `AI_MODEL` is read once at import — changing it needs a restart.
 
 Scheduled checks run pg-boss in-process via `src/instrumentation.ts` and are off by default (pg-boss creates its own `pgboss` schema, which would pollute Prisma drift detection). Making it work needs all three of the `NEXT_RUNTIME` guard, the dynamic `import()`, and the `next.config.mjs` webpack alias that resolves the worker to `false` on edge — plus `serverExternalPackages: ["pg-boss"]`. The runtime guard alone is not sufficient, because the edge module graph still has to resolve.
+
+That alias is also why `dev` and `build` pass `--webpack`: Next 16 defaults to Turbopack, whose static `resolveAlias` can't express a condition on `nextRuntime`. Silencing the resulting error with an empty `turbopack: {}` would enable Turbopack and drop the alias, bringing the edge-compile failure straight back.
+
+## Testing
+
+**Business logic in `src/lib` is tested against a real Postgres, never a mocked Prisma.** The guarantees that make Bunsho a control system *are* the triggers — append-only audit log, frozen published versions, one draft per document, transaction rollback, org scoping. A mock asserts call shape and proves none of them, so the tests that matter most are exactly the ones a mock cannot write. `src/lib/lifecycle.db.test.ts` is the style exemplar; fixtures and helpers live in `src/test/db.ts`.
+
+Tests `TRUNCATE` rather than `DELETE` between cases — the write-once triggers reject row deletion, and TRUNCATE doesn't fire row-level triggers, so the guarantee stays armed for the tests asserting it.
+
+Two Prisma translation quirks worth knowing when asserting on trigger errors: a trigger raising `unique_violation` surfaces as P2002 with the trigger's message **discarded**, while `restrict_violation` is unrecognized so its message survives.
+
+When a test fails, decide whether the assumption or the product is wrong before touching either. Never weaken a test to make a real bug pass.
 
 ## Dormant surface — don't assume the plumbing exists
 
