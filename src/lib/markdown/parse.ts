@@ -3,7 +3,7 @@ import type { PMMark, PMNode } from "./serialize";
 
 /**
  * GFM Markdown → ProseMirror JSON — the inverse of `serialize.ts`, used for
- * import (PRD §7 F11). Maps markdown-it's token stream onto the editor's node
+ * import (DECISIONS.md). Maps markdown-it's token stream onto the editor's node
  * set (headings, paragraphs, lists, blockquote, code, hr, tables, and the
  * bold/italic/strike/code/link marks). Imported content lands in a Draft for
  * human review, so best-effort fidelity is acceptable.

@@ -8,7 +8,7 @@ export interface DocumentStats {
   pendingSuggestions: number;
 }
 
-/** Counts for the home dashboard (PRD F6 home view). */
+/** Counts for the home dashboard (the home dashboard). */
 export async function documentStats(orgId: string): Promise<DocumentStats> {
   const [total, draftsInProgress, published, retired, pendingSuggestions] = await Promise.all([
     prisma.document.count({ where: { orgId } }),

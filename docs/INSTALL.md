@@ -1,6 +1,6 @@
 # Installing & operating Bunsho
 
-Bunsho runs as **exactly two services** — the app and PostgreSQL (PRD §4.5, §8).
+Bunsho runs as **exactly two services** — the app and PostgreSQL (DECISIONS.md).
 The only hard external dependency is Postgres; AI features additionally need
 outbound HTTPS to the Anthropic API and are off unless you enable them.
 

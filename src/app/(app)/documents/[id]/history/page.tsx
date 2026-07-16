@@ -38,7 +38,7 @@ export default async function DocumentHistoryPage({ params }: { params: Promise<
   const { doc, published, status } = detail;
   const current = doc.currentPublishedVersion;
   const canManage = user.role !== "viewer";
-  // Viewers may only see current, published, non-retired documents (PRD §3).
+  // Viewers may only see current, published, non-retired documents (DECISIONS.md — roles).
   if (!canManage && status !== "published") notFound();
 
   return (

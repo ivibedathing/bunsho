@@ -1,4 +1,4 @@
--- Bunsho invariants enforced at the database layer (PRD §8).
+-- Bunsho invariants enforced at the database layer (DECISIONS.md).
 --
 -- Prisma's schema cannot express "immutable once published" or "append-only",
 -- so the guarantees live here as triggers. They defend the audit story even

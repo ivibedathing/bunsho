@@ -106,7 +106,7 @@ export async function editAction(formData: FormData): Promise<void> {
 }
 
 export async function retireAction(formData: FormData): Promise<void> {
-  const user = await requireRole("admin"); // force-retire is Admin-only (PRD §6 matrix)
+  const user = await requireRole("admin"); // force-retire is Admin-only (DECISIONS.md — permission matrix)
   const documentId = String(formData.get("documentId") ?? "");
   await retireDocument(user.orgId, user.id, documentId);
   revalidatePath(`/documents/${documentId}`);

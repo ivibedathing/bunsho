@@ -1,4 +1,4 @@
-// Bunsho data model — audit-shaped from day one (PRD §8).
+// Bunsho data model — audit-shaped from day one (DECISIONS.md).
 //
 // Design rules encoded here:
 //   * Every tenant-scoped table carries `orgId` so Cloud SaaS (Phase 5) is not a rewrite.
@@ -14,9 +14,10 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+// The connection URL lives in `prisma.config.ts` — Prisma 7 no longer accepts
+// `url` here.
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ─────────────────────────── Enums ───────────────────────────
@@ -39,7 +40,7 @@ enum SuggestionStatus {
   rejected
 }
 
-// The AI agent is a system actor, never a login user (PRD §3).
+// The AI agent is a system actor, never a login user (DECISIONS.md — roles).
 enum ActorType {
   user
   ai
@@ -152,7 +153,7 @@ model Folder {
 }
 
 // Mutable container. Its content lives in `documentVersions`; the current published
-// version is a projection pointer maintained by the lifecycle service (PRD §8).
+// version is a projection pointer maintained by the lifecycle service (DECISIONS.md).
 model Document {
   id        String       @id @default(cuid())
   orgId     String
@@ -237,7 +238,7 @@ model DocumentVersion {
 // ─────────────────────── Attachments ─────────────────────────
 // Files/images attached to a document (not to a version): supporting evidence,
 // diagrams, source spreadsheets. Bytes live in Postgres so the deployment stays
-// exactly two services (PRD §8) and `pg_dump` backups capture everything.
+// exactly two services (DECISIONS.md) and `pg_dump` backups capture everything.
 // Inline editor images reference these rows via /api/attachments/{id}.
 model Attachment {
   id         String   @id @default(cuid())

@@ -20,11 +20,11 @@ export interface SearchOptions {
 }
 
 /**
- * Full-text search over documents (PRD §8 — Postgres FTS, no separate engine).
+ * Full-text search over documents (DECISIONS.md — Postgres FTS, no separate engine).
  * FTS runs inline over the current published version's frozen Markdown plus the
  * title and doc code; at v1 volumes a stored tsvector/GIN index isn't needed yet.
  *
- * Role-aware (PRD §3, §6): Viewers only ever see current, published, non-retired
+ * Role-aware (DECISIONS.md — roles + permission matrix): Viewers only ever see current, published, non-retired
  * documents. Editors/Admins see everything and may filter by status. Draft *body*
  * text isn't indexed (drafts have no frozen Markdown) — drafts match by title/code.
  */

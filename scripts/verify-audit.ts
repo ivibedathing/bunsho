@@ -1,15 +1,18 @@
 /**
  * `verify-audit` — walk every organization's audit hash chain and confirm it is
- * intact (PRD §7 F7). Exits non-zero if any chain is broken, so it can gate CI,
+ * intact (DECISIONS.md). Exits non-zero if any chain is broken, so it can gate CI,
  * backups, or a scheduled integrity check.
  *
  *   pnpm verify-audit
  */
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { verifyOrgChain } from "../src/lib/audit/writer";
 
 async function main(): Promise<number> {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  });
   try {
     const orgs = await prisma.organization.findMany({ select: { id: true, name: true } });
     if (orgs.length === 0) {

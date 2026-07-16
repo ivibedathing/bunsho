@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /**
- * draw.io diagrams as first-class blocks (PRD §4.3 fidelity rules apply).
+ * draw.io diagrams as first-class blocks (DECISIONS.md — Markdown fidelity rules apply).
  *
  * A diagram is stored as ONE string: the "editable SVG" (xmlsvg) that draw.io
  * exports — an SVG data URI whose `content` attribute carries the source

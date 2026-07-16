@@ -7,7 +7,7 @@ export interface DiffSegment {
 }
 
 /**
- * Word-level redline between two frozen Markdown snapshots (PRD §8 — jsdiff on
+ * Word-level redline between two frozen Markdown snapshots (DECISIONS.md — jsdiff on
  * stored version content). Segments carry added/removed flags for rendering.
  *
  * `diffWordsWithSpace`, not `diffWords`: only the whitespace-significant variant

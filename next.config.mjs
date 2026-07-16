@@ -4,7 +4,7 @@ const workerModule = fileURLToPath(new URL("./src/lib/jobs/worker.ts", import.me
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Single self-contained server bundle for the one Docker image (PRD §8).
+  // Single self-contained server bundle for the one Docker image (DECISIONS.md).
   output: "standalone",
   reactStrictMode: true,
   poweredByHeader: false,
@@ -16,6 +16,11 @@ const nextConfig = {
   // pg-boss (and its pg dependency) must stay a runtime require — bundling it
   // breaks the instrumentation compile in dev ("Can't resolve 'fs'").
   serverExternalPackages: ["pg-boss"],
+  // Next 16 defaults to Turbopack, which ignores the webpack hook below and
+  // errors out when it sees one. The alias is conditional on `nextRuntime`,
+  // which Turbopack's static `resolveAlias` can't express — so `dev`/`build`
+  // pass `--webpack` explicitly. Porting this to Turbopack means finding
+  // another way to keep the worker out of the edge module graph.
   webpack: (config, { nextRuntime }) => {
     // instrumentation.ts is also compiled for the edge runtime, where the
     // pg-boss worker can never run (guarded by NEXT_RUNTIME) but its Node-only

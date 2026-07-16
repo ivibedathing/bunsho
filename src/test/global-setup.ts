@@ -12,15 +12,15 @@ export default function setup() {
   try {
     // CREATE DATABASE cannot run inside a transaction block, so it goes through
     // the maintenance database on its own.
-    execFileSync(
-      "pnpm",
-      ["exec", "prisma", "db", "execute", "--url", adminUrl(TEST_DATABASE_URL), "--stdin"],
-      {
-        input: `CREATE DATABASE "${name}";`,
-        stdio: ["pipe", "pipe", "pipe"],
-        encoding: "utf8",
-      },
-    );
+    // Prisma 7 removed `db execute --url`; the URL now comes from
+    // prisma.config.ts, which reads DATABASE_URL — so override it for this
+    // call alone to reach the maintenance database.
+    execFileSync("pnpm", ["exec", "prisma", "db", "execute", "--stdin"], {
+      input: `CREATE DATABASE "${name}";`,
+      env: { ...process.env, DATABASE_URL: adminUrl(TEST_DATABASE_URL) },
+      stdio: ["pipe", "pipe", "pipe"],
+      encoding: "utf8",
+    });
   } catch (e) {
     // Already exists is the normal steady state; anything else is real.
     const err = e as { stdout?: string; stderr?: string };

@@ -1,7 +1,7 @@
 import { PgBoss } from "pg-boss";
 
 /**
- * Background job queue on Postgres (PRD §8 — pg-boss, no Redis/separate queue).
+ * Background job queue on Postgres (DECISIONS.md — pg-boss, no Redis/separate queue).
  * Used for scheduled document checks. A single boss instance per process, started
  * lazily. pg-boss keeps its own `pgboss` schema, separate from the app tables.
  */

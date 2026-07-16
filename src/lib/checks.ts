@@ -5,7 +5,7 @@ import { versionMarkdown } from "@/lib/lifecycle";
 import { createSuggestion } from "@/lib/suggestions";
 
 /**
- * Document checks (PRD §7 F8d/e). Staleness and broken-reference checks are
+ * Document checks (DECISIONS.md). Staleness and broken-reference checks are
  * deterministic (no LLM) and cheap, so they run against every published doc;
  * results become advisory suggestions in the queue. `maxPerRun` is the cost/rate
  * guard (§6 AI cost/reliability). The LLM-backed review lives here too but is
