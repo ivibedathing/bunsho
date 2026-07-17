@@ -1,13 +1,13 @@
 type SealStyle = { label: string; chip: string; seal: string };
 
+/**
+ * A page has no draft/published state to show — it is saved, and that is all
+ * (DECISIONS.md — 2026-07-17). What remains is retirement, an Admin act, and the
+ * standing of a frozen version in the history record.
+ */
 const SEALS: Record<string, SealStyle> = {
-  draft: {
-    label: "Draft",
-    chip: "border-draft/50 bg-draft-wash text-draft",
-    seal: "border-draft/60 text-draft",
-  },
-  published: {
-    label: "Published",
+  current: {
+    label: "Current",
     chip: "border-ok/50 bg-ok-wash text-ok",
     seal: "border-gold/70 text-gold",
   },

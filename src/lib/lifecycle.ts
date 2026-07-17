@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Prisma } from "@/generated/prisma/client";
+import type { DocumentVersion, Prisma } from "@/generated/prisma/client";
 import { appendAudit } from "@/lib/audit/writer";
 import { prisma } from "@/lib/db";
 import { EMPTY_DOC } from "@/lib/documents";
@@ -31,18 +31,40 @@ export function versionMarkdown(v: { markdown: string | null; prosemirrorJson: u
  * current-published projection — all in one transaction, audit-logged. The draft
  * update is permitted by the freeze trigger because the row is not yet published
  * at the moment of the update.
+ *
+ * `ifDraftOpen` returns null instead of throwing when there is nothing open. The
+ * editor's idle commit fires on a timer with no way to know whether a concurrent
+ * tab already published, so "nothing to do" is a normal outcome there, not an
+ * error. The check and the publish share one transaction, so the race is closed.
  */
 export async function publishDocument(
   orgId: string,
   actorId: string,
   documentId: string,
   changeNote?: string,
-) {
+): Promise<DocumentVersion>;
+export async function publishDocument(
+  orgId: string,
+  actorId: string,
+  documentId: string,
+  changeNote: string | undefined,
+  opts: { ifDraftOpen: true },
+): Promise<DocumentVersion | null>;
+export async function publishDocument(
+  orgId: string,
+  actorId: string,
+  documentId: string,
+  changeNote?: string,
+  opts: { ifDraftOpen?: boolean } = {},
+): Promise<DocumentVersion | null> {
   return prisma.$transaction(async (tx) => {
     const draft = await tx.documentVersion.findFirst({
       where: { documentId, orgId, publishedAt: null },
     });
-    if (!draft) throw new Error("No open draft to publish");
+    if (!draft) {
+      if (opts.ifDraftOpen) return null;
+      throw new Error("No open draft to publish");
+    }
     const doc = await tx.document.findFirstOrThrow({ where: { id: documentId, orgId } });
 
     const markdown = serializeToMarkdown(draft.prosemirrorJson as unknown as PMNode);

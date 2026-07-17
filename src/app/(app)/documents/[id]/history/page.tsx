@@ -18,15 +18,14 @@ function fmt(d: Date | null): string {
     : "—";
 }
 
-function versionStatus(v: {
-  publishedAt: Date | null;
-  retiredAt: Date | null;
-  supersededAt: Date | null;
-}): string {
-  if (v.publishedAt === null) return "draft";
+/**
+ * A frozen version's place in the record. Only ever called with published rows —
+ * the open draft is the live page, not a version, and is filtered out below.
+ */
+function versionStatus(v: { retiredAt: Date | null; supersededAt: Date | null }): string {
   if (v.retiredAt) return "retired";
   if (v.supersededAt) return "superseded";
-  return "published";
+  return "current";
 }
 
 export default async function DocumentHistoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,11 +46,11 @@ export default async function DocumentHistoryPage({ params }: { params: Promise<
         eyebrow={
           <>
             <DocCode code={doc.docCode} />
-            <StatusSeal status={status} variant="seal" />
+            {status === "retired" && <StatusSeal status="retired" variant="seal" />}
           </>
         }
         title={`History — ${doc.title}`}
-        meta="Every version is immutable; restoring stages old content into a new draft."
+        meta="Every version is immutable; restoring stages old content back into the page."
         actions={
           <Button href={`/documents/${doc.id}`} variant="secondary">
             <ArrowLeft size={15} strokeWidth={1.75} aria-hidden />
@@ -66,13 +65,13 @@ export default async function DocumentHistoryPage({ params }: { params: Promise<
           Change log
         </h2>
         {published.length === 0 ? (
-          <p className="m-0 text-sm text-ink-muted">Nothing published yet.</p>
+          <p className="m-0 text-sm text-ink-muted">Nothing saved yet.</p>
         ) : (
           <Table>
             <thead>
               <tr>
                 <Th>Version</Th>
-                <Th>Published</Th>
+                <Th>Saved</Th>
                 <Th>Change note</Th>
                 <Th>Author</Th>
               </tr>
@@ -110,7 +109,7 @@ export default async function DocumentHistoryPage({ params }: { params: Promise<
               </tr>
             </thead>
             <tbody>
-              {doc.versions.map((v) => {
+              {published.map((v) => {
                 const vs = versionStatus(v);
                 return (
                   <tr key={v.id}>
@@ -120,7 +119,7 @@ export default async function DocumentHistoryPage({ params }: { params: Promise<
                     <Td>
                       <StatusSeal status={vs} />
                     </Td>
-                    <Td className="whitespace-nowrap">{fmt(v.publishedAt ?? v.updatedAt)}</Td>
+                    <Td className="whitespace-nowrap">{fmt(v.publishedAt)}</Td>
                     <Td>{v.author?.name ?? v.author?.email ?? "—"}</Td>
                     <Td>
                       <div className="flex flex-wrap items-center gap-1">
@@ -134,16 +133,14 @@ export default async function DocumentHistoryPage({ params }: { params: Promise<
                             Diff vs current
                           </Button>
                         )}
-                        {v.publishedAt !== null && (
-                          <form action={restoreAction}>
-                            <input type="hidden" name="documentId" value={doc.id} />
-                            <input type="hidden" name="versionId" value={v.id} />
-                            <Button type="submit" variant="ghost" size="sm">
-                              <RotateCcw size={14} strokeWidth={1.75} aria-hidden />
-                              Restore
-                            </Button>
-                          </form>
-                        )}
+                        <form action={restoreAction}>
+                          <input type="hidden" name="documentId" value={doc.id} />
+                          <input type="hidden" name="versionId" value={v.id} />
+                          <Button type="submit" variant="ghost" size="sm">
+                            <RotateCcw size={14} strokeWidth={1.75} aria-hidden />
+                            Restore
+                          </Button>
+                        </form>
                       </div>
                     </Td>
                   </tr>
