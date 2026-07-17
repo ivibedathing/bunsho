@@ -1,14 +1,16 @@
 # Bunsho — single self-contained image serving UI + API (PRD §8).
 # Multi-stage build producing a Next.js standalone server.
 
-# ---- Base: pnpm on Node 22 (debian slim; openssl for Prisma engine detection) ----
+# ---- Base: pnpm on Node 26 (debian slim; openssl for Prisma engine detection) ----
 # Pinned by digest so a rebuild is reproducible; Dependabot moves the digest.
 FROM node:26-bookworm-slim@sha256:2d49d876e96237d76de412761cf05dbfe5aee325cc4406a4d41d5824c5bb8beb AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN apt-get update && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/*
-RUN corepack enable && corepack prepare pnpm@10.29.2 --activate
+# Node 25 dropped bundled corepack, so pnpm is installed from npm instead.
+# Keep this version in step with `packageManager` in package.json.
+RUN npm install -g pnpm@10.29.2
 WORKDIR /app
 
 # ---- Dependencies (no lifecycle scripts; Prisma generates in the build stage) ----

@@ -29,6 +29,14 @@ type ButtonProps = {
   children: ReactNode;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children">;
 
+/** The button look, for the elements that can't be a `Button` — a `<summary>`, say. */
+export function buttonClasses(
+  opts: { variant?: Variant; size?: Size; className?: string } = {},
+): string {
+  const { variant = "secondary", size = "md", className } = opts;
+  return [BASE, VARIANTS[variant], SIZES[size], className].filter(Boolean).join(" ");
+}
+
 export function Button({
   variant = "secondary",
   size = "md",
@@ -38,7 +46,7 @@ export function Button({
   type = "button",
   ...rest
 }: ButtonProps) {
-  const cls = [BASE, VARIANTS[variant], SIZES[size], className].filter(Boolean).join(" ");
+  const cls = buttonClasses({ variant, size, className });
   if (href) {
     return (
       <Link href={href} className={cls}>
