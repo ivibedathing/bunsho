@@ -97,20 +97,27 @@ export async function renameFolderAction(formData: FormData): Promise<void> {
  * prototype, and React serializes those into server-action arguments as opaque
  * temporary references — any node with attributes (headings, diagrams, images,
  * tables) would make the save throw.
+ *
+ * `getOrCreateDraft` first because `commitAction` closes the draft it publishes:
+ * the next keystroke after an idle commit has nothing open to write to, and
+ * `saveDraft` alone would throw.
  */
 export async function saveDraftAction(documentId: string, prosemirrorJson: string): Promise<void> {
   const user = await requireRole("admin", "editor");
+  await getOrCreateDraft(user.orgId, user.id, documentId);
   await saveDraft(user.orgId, documentId, JSON.parse(prosemirrorJson));
 }
 
-export async function publishAction(formData: FormData): Promise<void> {
+/**
+ * Freeze the open draft as a version — the editor's idle commit (DECISIONS.md —
+ * 2026-07-17, save-only pages). No form, no change note, no redirect: this fires
+ * from a timer behind the user's back, so it must not navigate. A no-op when
+ * nothing is open, which is the common case when the timer outlives the typing.
+ */
+export async function commitAction(documentId: string): Promise<void> {
   const user = await requireRole("admin", "editor");
-  const documentId = String(formData.get("documentId") ?? "");
-  const changeNote = String(formData.get("changeNote") ?? "");
-  const published = await publishDocument(user.orgId, user.id, documentId, changeNote);
+  await publishDocument(user.orgId, user.id, documentId, undefined, { ifDraftOpen: true });
   revalidatePath(`/documents/${documentId}`);
-  // The param triggers the one-time seal celebration on the detail page.
-  redirect(`/documents/${documentId}?published=${published.version}`);
 }
 
 export async function editAction(formData: FormData): Promise<void> {

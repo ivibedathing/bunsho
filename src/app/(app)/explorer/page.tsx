@@ -13,7 +13,7 @@ import { Table, Td, Th } from "@/components/ui/Table";
 import { countPages, type ExplorerFolder, getExplorerTree } from "@/lib/explorer";
 import { listFolders } from "@/lib/folders";
 import { requireUser } from "@/lib/rbac";
-import { type SearchRow, searchDocuments } from "@/lib/search";
+import { searchDocuments } from "@/lib/search";
 import { ExplorerTree } from "./ExplorerTree";
 
 /**
@@ -28,10 +28,6 @@ import { ExplorerTree } from "./ExplorerTree";
  */
 
 export const dynamic = "force-dynamic";
-
-function statusOf(r: SearchRow): string {
-  return r.retiredAt ? "retired" : r.currentPublishedVersionId ? "published" : "draft";
-}
 
 function totalPages(folders: ExplorerFolder[]): number {
   return folders.reduce(
@@ -149,8 +145,6 @@ export default async function ExplorerPage({
             className="w-auto"
           >
             <option value="">Any status</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
             <option value="retired">Retired</option>
           </Select>
         )}
@@ -196,9 +190,7 @@ export default async function ExplorerPage({
                         {r.title}
                       </Link>
                     </Td>
-                    <Td>
-                      <StatusSeal status={statusOf(r)} />
-                    </Td>
+                    <Td>{r.retiredAt && <StatusSeal status="retired" />}</Td>
                     <Td>{r.folderName ?? "—"}</Td>
                   </tr>
                 ))}

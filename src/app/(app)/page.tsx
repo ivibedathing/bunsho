@@ -17,10 +17,6 @@ import { searchDocuments } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
-function statusOf(d: { retiredAt: Date | null; currentPublishedVersionId: string | null }): string {
-  return d.retiredAt ? "retired" : d.currentPublishedVersionId ? "published" : "draft";
-}
-
 export default async function Home() {
   const user = await requireUser();
   const canManage = user.role !== "viewer";
@@ -136,7 +132,7 @@ async function ManagerDashboard({ orgId }: { orgId: string }) {
                   >
                     <DocCode code={d.docCode} className="min-w-20" />
                     <span className="flex-1 truncate font-medium text-ink">{d.title}</span>
-                    <StatusSeal status={statusOf(d)} />
+                    {d.retiredAt && <StatusSeal status="retired" />}
                   </Link>
                 </StaggerItem>
               ))}

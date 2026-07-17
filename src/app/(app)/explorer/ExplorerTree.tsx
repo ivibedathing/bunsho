@@ -64,7 +64,7 @@ function PageRow({ page, canManage }: { page: ExplorerPage } & TreeProps) {
         {page.title}
       </Link>
       <DocCode code={page.docCode} className="shrink-0" />
-      <StatusSeal status={page.status} />
+      {page.status === "retired" && <StatusSeal status="retired" />}
       {canManage && <SubpageLink id={page.id} label={`New subpage under ${page.title}`} />}
     </>
   );

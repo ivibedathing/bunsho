@@ -41,7 +41,7 @@ export default async function DocumentsPage({
     <div className="grid gap-6">
       <PageHeader
         title="Documents"
-        meta="Every controlled document, drafts included."
+        meta="Every controlled document."
         actions={
           <>
             <Button href="/api/export/zip" variant="ghost" size="sm">
@@ -127,37 +127,25 @@ export default async function DocumentsPage({
               </tr>
             </thead>
             <tbody>
-              {docs.map((d) => {
-                const status = d.retiredAt
-                  ? "retired"
-                  : d.currentPublishedVersionId
-                    ? "published"
-                    : "draft";
-                return (
-                  <tr key={d.id} className="transition-colors hover:bg-gold-wash/30">
-                    <Td className="whitespace-nowrap">
-                      <DocCode code={d.docCode} />
-                    </Td>
-                    <Td>
-                      <Link
-                        href={`/documents/${d.id}`}
-                        className="font-medium text-ink no-underline hover:text-gold"
-                      >
-                        {d.title}
-                      </Link>
-                      {status === "published" && d.versions.length > 0 && (
-                        <span className="ml-1.5 text-xs text-ink-muted">· draft open</span>
-                      )}
-                    </Td>
-                    <Td>
-                      <StatusSeal status={status} />
-                    </Td>
-                    <Td>{d.owner?.name ?? d.owner?.email ?? "—"}</Td>
-                    <Td>{d.folder?.name ?? "—"}</Td>
-                    <Td className="whitespace-nowrap text-ink-muted">{fmtDate(d.updatedAt)}</Td>
-                  </tr>
-                );
-              })}
+              {docs.map((d) => (
+                <tr key={d.id} className="transition-colors hover:bg-gold-wash/30">
+                  <Td className="whitespace-nowrap">
+                    <DocCode code={d.docCode} />
+                  </Td>
+                  <Td>
+                    <Link
+                      href={`/documents/${d.id}`}
+                      className="font-medium text-ink no-underline hover:text-gold"
+                    >
+                      {d.title}
+                    </Link>
+                  </Td>
+                  <Td>{d.retiredAt && <StatusSeal status="retired" />}</Td>
+                  <Td>{d.owner?.name ?? d.owner?.email ?? "—"}</Td>
+                  <Td>{d.folder?.name ?? "—"}</Td>
+                  <Td className="whitespace-nowrap text-ink-muted">{fmtDate(d.updatedAt)}</Td>
+                </tr>
+              ))}
             </tbody>
           </Table>
         </Reveal>

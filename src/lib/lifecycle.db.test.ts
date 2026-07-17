@@ -127,6 +127,21 @@ describe("publishDocument", () => {
     await expect(publishDocument(org.id, admin.id, doc.id)).rejects.toThrow("No open draft");
   });
 
+  it("is a no-op returning null when ifDraftOpen and nothing is open", async () => {
+    // The editor's idle commit fires on a timer and may find the draft already
+    // frozen by a prior commit or another tab — that is a normal outcome, not an
+    // error (DECISIONS.md — 2026-07-17, save-only pages).
+    const { org, admin } = await makeOrgWithAdmin();
+    const { doc } = await makeDocumentWithDraft(org.id, admin.id);
+    const v1 = await publishDocument(org.id, admin.id, doc.id);
+
+    const again = await publishDocument(org.id, admin.id, doc.id, undefined, { ifDraftOpen: true });
+    expect(again).toBeNull();
+
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
+    expect(after.currentPublishedVersionId).toBe(v1.id);
+  });
+
   it("cannot publish another org's document", async () => {
     const { org, admin } = await makeOrgWithAdmin();
     const other = await makeOrgWithAdmin();

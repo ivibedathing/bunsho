@@ -1,13 +1,11 @@
 import type { JSONContent } from "@tiptap/react";
-import { Archive, History, Inbox, ListChecks, PenLine, Sparkles, Stamp } from "lucide-react";
+import { Archive, History, Inbox, ListChecks, PenLine, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/Reveal";
-import { SealStamp } from "@/components/motion/SealStamp";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { DocCode } from "@/components/ui/DocCode";
-import { LifecycleStepper } from "@/components/ui/LifecycleStepper";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusSeal } from "@/components/ui/StatusSeal";
 import { VersionStamp } from "@/components/ui/VersionStamp";
@@ -19,7 +17,6 @@ import { listPendingSuggestions, type SuggestionPayload } from "@/lib/suggestion
 import {
   acceptSuggestionAction,
   editAction,
-  publishAction,
   rejectSuggestionAction,
   retireAction,
   reviewAction,
@@ -37,35 +34,19 @@ function fmt(d: Date | null): string {
     : "—";
 }
 
-function versionStatus(v: {
-  publishedAt: Date | null;
-  retiredAt: Date | null;
-  supersededAt: Date | null;
-}): string {
-  if (v.publishedAt === null) return "draft";
-  if (v.retiredAt) return "retired";
-  if (v.supersededAt) return "superseded";
-  return "published";
-}
-
-export default async function DocumentDetailPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ published?: string }>;
-}) {
+export default async function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await params;
-  const { published: justPublished } = await searchParams;
   const detail = await getDocumentDetail(user.orgId, id);
   if (!detail) notFound();
 
-  const { doc, draft, status } = detail;
+  const { doc, status } = detail;
   const current = doc.currentPublishedVersion;
   const isAdmin = user.role === "admin";
   const canManage = user.role !== "viewer";
-  // Viewers may only see current, published, non-retired documents (DECISIONS.md — roles).
+  // Viewers may only see a document that has content and is not retired
+  // (DECISIONS.md — roles). Saving is what gives a page its first version, so a
+  // page reaches Viewers as soon as an editor's first idle commit lands.
   if (!canManage && status !== "published") notFound();
 
   const aiEnabled = isAiEnabled();
@@ -81,13 +62,11 @@ export default async function DocumentDetailPage({
 
   return (
     <div className="grid gap-8">
-      {justPublished && <SealStamp version={justPublished} />}
-
       <PageHeader
         eyebrow={
           <>
             <DocCode code={doc.docCode} />
-            <StatusSeal status={status} variant="seal" />
+            {status === "retired" && <StatusSeal status="retired" variant="seal" />}
           </>
         }
         title={doc.title}
@@ -97,10 +76,11 @@ export default async function DocumentDetailPage({
               {doc.folder ? `${doc.folder.name} · ` : ""}
               {`Owner ${doc.owner?.name ?? doc.owner?.email ?? "—"}`}
             </span>
-            <div className="flex flex-wrap items-center gap-3">
-              <LifecycleStepper status={status} />
-              {current && <VersionStamp version={current.version} />}
-            </div>
+            {current && (
+              <div className="flex flex-wrap items-center gap-3">
+                <VersionStamp version={current.version} />
+              </div>
+            )}
           </div>
         }
         actions={
@@ -110,7 +90,7 @@ export default async function DocumentDetailPage({
                 <input type="hidden" name="documentId" value={doc.id} />
                 <Button type="submit" variant="secondary">
                   <PenLine size={15} strokeWidth={1.75} aria-hidden />
-                  {draft ? "Continue editing draft" : "Edit"}
+                  Edit
                 </Button>
               </form>
               {isAdmin && status === "published" && (
@@ -129,30 +109,6 @@ export default async function DocumentDetailPage({
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start">
         <div className="grid min-w-0 gap-8">
-          {/* Publish the open draft (managers only) */}
-          {canManage && draft && (
-            <Reveal>
-              <Card className="grid gap-3 border-gold/30">
-                <span className="font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-gold">
-                  Draft v{draft.version} — ready when you are
-                </span>
-                <form action={publishAction} className="flex flex-wrap items-center gap-2.5">
-                  <input type="hidden" name="documentId" value={doc.id} />
-                  <input
-                    name="changeNote"
-                    type="text"
-                    placeholder="What changed in this version? (optional)"
-                    className="min-w-64 flex-1 rounded-control border border-line bg-carbon-sunken/60 px-3 py-2 text-sm text-ink placeholder:text-ink-muted/60 focus:border-gold/60"
-                  />
-                  <Button type="submit" variant="primary">
-                    <Stamp size={15} strokeWidth={1.75} aria-hidden />
-                    Publish v{draft.version}
-                  </Button>
-                </form>
-              </Card>
-            </Reveal>
-          )}
-
           {/* Review tools + suggestions inbox (managers only) */}
           {canManage && (
             <section className="grid gap-3">
@@ -235,10 +191,10 @@ export default async function DocumentDetailPage({
             </section>
           )}
 
-          {/* Current published content — the document on the desk */}
+          {/* The document on the desk */}
           <section className="grid gap-3">
             <h2 className="m-0 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-              {current ? `Published — v${current.version}` : "No published version yet"}
+              {current ? `v${current.version}` : "Nothing written yet"}
             </h2>
             {current ? (
               <Reveal>
@@ -248,11 +204,11 @@ export default async function DocumentDetailPage({
               </Reveal>
             ) : (
               <p className="m-0 text-sm text-ink-muted">
-                This document is still a draft.{" "}
+                This page is empty.{" "}
                 <Link href={`/documents/${doc.id}/edit`} className="text-gold">
                   Open the editor
                 </Link>{" "}
-                to write and publish it.
+                to start writing.
               </p>
             )}
           </section>
@@ -268,7 +224,6 @@ export default async function DocumentDetailPage({
               <div className="grid gap-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <VersionStamp version={lastChange.version} />
-                  <StatusSeal status={versionStatus(lastChange)} />
                 </div>
                 <p className="m-0 text-sm font-medium text-ink">
                   {lastChange.author?.name ?? lastChange.author?.email ?? "—"}
