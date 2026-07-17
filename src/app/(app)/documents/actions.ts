@@ -58,6 +58,16 @@ export async function createDocumentAction(
     if (!parent) return { error: "That parent page no longer exists." };
   }
 
+  // A nested page takes no folder, so a stale folderId alongside a parent is
+  // dropped rather than reported — createDocument would ignore it anyway.
+  if (folderId && !parentId) {
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, orgId: user.orgId },
+      select: { id: true },
+    });
+    if (!folder) return { error: "That folder no longer exists." };
+  }
+
   const doc = await createDocument(user.orgId, user.id, {
     title,
     docCode,

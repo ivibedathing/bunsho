@@ -130,6 +130,22 @@ describe("createDocument", () => {
     expect(doc.tags).toEqual(["hr", "policy"]);
   });
 
+  it("refuses a folder belonging to another org", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const other = await makeOrgWithAdmin();
+    const theirFolder = await makeFolder(other.org.id, "Theirs");
+
+    await expect(
+      createDocument(org.id, admin.id, {
+        title: "Leaky",
+        docCode: "DOC-001",
+        folderId: theirFolder.id,
+      }),
+    ).rejects.toThrow("Folder not found");
+
+    expect(await prisma.document.count({ where: { orgId: org.id } })).toBe(0);
+  });
+
   it("rolls the whole transaction back when the document code clashes", async () => {
     const { org, admin } = await makeOrgWithAdmin();
     await createDocument(org.id, admin.id, { title: "First", docCode: "DOC-001" });

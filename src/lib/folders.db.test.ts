@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
-import { createFolder, listFolders } from "@/lib/folders";
+import { createFolder, listFolders, searchFolderOptions } from "@/lib/folders";
 import { makeOrgWithAdmin } from "@/test/db";
 
 describe("listFolders", () => {
@@ -79,5 +79,84 @@ describe("createFolder", () => {
 
     expect(leaf.parentId).toBe(mid.id);
     expect(await listFolders(org.id)).toHaveLength(3);
+  });
+});
+
+describe("searchFolderOptions", () => {
+  const paths = (options: { path: string }[]) => options.map((o) => o.path);
+
+  it("flattens nesting into a ' / ' path", async () => {
+    const { org } = await makeOrgWithAdmin();
+    const hr = await createFolder(org.id, "HR");
+    const policies = await createFolder(org.id, "Policies", hr.id);
+    await createFolder(org.id, "Onboarding", policies.id);
+
+    expect(paths(await searchFolderOptions(org.id))).toEqual([
+      "HR",
+      "HR / Policies",
+      "HR / Policies / Onboarding",
+    ]);
+  });
+
+  it("matches any segment of the path, case-insensitively", async () => {
+    const { org } = await makeOrgWithAdmin();
+    const hr = await createFolder(org.id, "HR");
+    await createFolder(org.id, "Policies", hr.id);
+    await createFolder(org.id, "Engineering");
+
+    // A parent-only match still returns the child — the child's path contains it.
+    expect(paths(await searchFolderOptions(org.id, "hr"))).toEqual(["HR", "HR / Policies"]);
+    expect(paths(await searchFolderOptions(org.id, "POLIC"))).toEqual(["HR / Policies"]);
+    expect(await searchFolderOptions(org.id, "nothing here")).toEqual([]);
+  });
+
+  it("ignores surrounding whitespace in the query", async () => {
+    const { org } = await makeOrgWithAdmin();
+    await createFolder(org.id, "Policies");
+
+    expect(paths(await searchFolderOptions(org.id, "  policies  "))).toEqual(["Policies"]);
+  });
+
+  it("returns everything when the query is empty", async () => {
+    const { org } = await makeOrgWithAdmin();
+    await createFolder(org.id, "Policies");
+    await createFolder(org.id, "Assets");
+
+    expect(paths(await searchFolderOptions(org.id, "   "))).toEqual(["Assets", "Policies"]);
+  });
+
+  it("never returns another org's folders", async () => {
+    const { org } = await makeOrgWithAdmin();
+    const other = await makeOrgWithAdmin();
+    await createFolder(org.id, "Ours");
+    await createFolder(other.org.id, "Theirs");
+
+    expect(await searchFolderOptions(org.id, "Theirs")).toEqual([]);
+    expect(paths(await searchFolderOptions(org.id))).toEqual(["Ours"]);
+  });
+
+  it("caps the result set at the limit", async () => {
+    const { org } = await makeOrgWithAdmin();
+    for (let i = 0; i < 25; i++) {
+      await createFolder(org.id, `Folder ${String(i).padStart(2, "0")}`);
+    }
+
+    expect(await searchFolderOptions(org.id)).toHaveLength(20);
+    expect(paths(await searchFolderOptions(org.id, "", 3))).toEqual([
+      "Folder 00",
+      "Folder 01",
+      "Folder 02",
+    ]);
+  });
+
+  it("treats a folder parented outside the org as a root", async () => {
+    // Unreachable through the UI, but the path walk must not leak the foreign
+    // name or emit a dangling " / " prefix if the data ever says otherwise.
+    const { org } = await makeOrgWithAdmin();
+    const other = await makeOrgWithAdmin();
+    const foreign = await createFolder(other.org.id, "Theirs");
+    await createFolder(org.id, "Ours", foreign.id);
+
+    expect(paths(await searchFolderOptions(org.id))).toEqual(["Ours"]);
   });
 });

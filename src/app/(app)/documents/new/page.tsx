@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { listParentOptions } from "@/lib/explorer";
-import { listFolders } from "@/lib/folders";
+import { searchFolderOptions } from "@/lib/folders";
 import { requireRole } from "@/lib/rbac";
 import { NewDocumentForm } from "./NewDocumentForm";
 
@@ -14,8 +14,10 @@ export default async function NewDocumentPage({
 }) {
   const user = await requireRole("admin", "editor");
   const { parent } = await searchParams;
+  // The first page of folders, so the picker opens populated before its first
+  // search round-trip; typing in it re-queries /api/folders.
   const [folders, parents] = await Promise.all([
-    listFolders(user.orgId),
+    searchFolderOptions(user.orgId),
     listParentOptions(user.orgId),
   ]);
 
@@ -31,7 +33,7 @@ export default async function NewDocumentPage({
       />
       <Card>
         <NewDocumentForm
-          folders={folders.map((f) => ({ id: f.id, name: f.name }))}
+          folders={folders.map((f) => ({ id: f.id, label: f.path }))}
           parents={parents}
           defaultParentId={defaultParentId}
         />

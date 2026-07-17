@@ -47,6 +47,22 @@ async function resolveParent(orgId: string, parentId?: string | null): Promise<s
 }
 
 /**
+ * The folder counterpart of `resolveParent`. The id arrives from a form — since
+ * the picker searches over an endpoint, nothing about the id being submitted
+ * proves the picker ever offered it — so a folder from another tenant would
+ * otherwise file a document into a folder its org can't see.
+ */
+async function resolveFolder(orgId: string, folderId?: string | null): Promise<string | null> {
+  if (!folderId) return null;
+  const folder = await prisma.folder.findFirst({
+    where: { id: folderId, orgId },
+    select: { id: true },
+  });
+  if (!folder) throw new Error("Folder not found");
+  return folder.id;
+}
+
+/**
  * Create a document and its initial (version 1) draft in one transaction, and
  * record the `document_created` audit entry. The draft is mutable (publishedAt
  * null); publishing it is M3.
@@ -57,6 +73,7 @@ async function resolveParent(orgId: string, parentId?: string | null): Promise<s
  */
 export async function createDocument(orgId: string, actorId: string, input: CreateDocumentInput) {
   const parentId = await resolveParent(orgId, input.parentId);
+  const folderId = parentId ? null : await resolveFolder(orgId, input.folderId);
 
   return prisma.$transaction(async (tx) => {
     const doc = await tx.document.create({
@@ -64,7 +81,7 @@ export async function createDocument(orgId: string, actorId: string, input: Crea
         orgId,
         docCode: input.docCode,
         title: input.title,
-        folderId: parentId ? null : (input.folderId ?? null),
+        folderId,
         parentId,
         ownerId: input.ownerId ?? actorId,
         tags: input.tags ?? [],

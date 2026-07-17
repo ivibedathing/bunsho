@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select } from "@/components/ui/Field";
+import { type SearchOption, SearchSelect } from "@/components/ui/SearchSelect";
 import { createDocumentAction, type NewDocState } from "../actions";
 
 const initial: NewDocState = {};
@@ -12,7 +13,7 @@ export function NewDocumentForm({
   parents,
   defaultParentId = "",
 }: {
-  folders: { id: string; name: string }[];
+  folders: SearchOption[];
   parents: { id: string; path: string }[];
   defaultParentId?: string;
 }) {
@@ -41,14 +42,14 @@ export function NewDocumentForm({
         </Select>
       </Label>
       <Label text="Folder">
-        <Select name="folderId" defaultValue="" disabled={nested}>
-          <option value="">— None —</option>
-          {folders.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.name}
-            </option>
-          ))}
-        </Select>
+        <SearchSelect
+          name="folderId"
+          endpoint="/api/folders"
+          initialOptions={folders}
+          disabled={nested}
+          noneLabel="— None —"
+          placeholder="Search folders…"
+        />
       </Label>
       {nested && (
         <p className="-mt-2 m-0 text-xs text-ink-muted">
