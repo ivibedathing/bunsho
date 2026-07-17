@@ -9,7 +9,7 @@ import { prisma } from "@/lib/db";
 import { isValidDocCode, normalizeDocCode } from "@/lib/docCode";
 import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
 import { rebuildGitRepo } from "@/lib/export/repo";
-import { createFolder } from "@/lib/folders";
+import { createFolder, renameFolder } from "@/lib/folders";
 import { importMarkdownFiles, importZip } from "@/lib/import";
 import { getOrCreateDraft, publishDocument, restoreVersion, retireDocument } from "@/lib/lifecycle";
 import { requireRole } from "@/lib/rbac";
@@ -67,13 +67,28 @@ export async function createDocumentAction(
   redirect(`/documents/${doc.id}/edit`);
 }
 
+/** Folder mutations are not audit-logged — folders are filing, not controlled content. */
 export async function createFolderAction(formData: FormData): Promise<void> {
   const user = await requireRole("admin", "editor");
   const name = String(formData.get("name") ?? "").trim();
   if (name) {
     await createFolder(user.orgId, name);
     revalidatePath("/documents");
+    revalidatePath("/explorer");
   }
+}
+
+/** Rename from the Explorer tree. The redirect drops `?rename=` from the URL. */
+export async function renameFolderAction(formData: FormData): Promise<void> {
+  const user = await requireRole("admin", "editor");
+  const folderId = String(formData.get("folderId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  if (name && folderId) {
+    await renameFolder(user.orgId, folderId, name);
+    revalidatePath("/documents");
+    revalidatePath("/explorer");
+  }
+  redirect("/explorer");
 }
 
 /**
