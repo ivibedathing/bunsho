@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
-import { createFolder, listFolders } from "@/lib/folders";
+import { createFolder, listFolders, renameFolder } from "@/lib/folders";
 import { makeOrgWithAdmin } from "@/test/db";
 
 describe("listFolders", () => {
@@ -79,5 +79,44 @@ describe("createFolder", () => {
 
     expect(leaf.parentId).toBe(mid.id);
     expect(await listFolders(org.id)).toHaveLength(3);
+  });
+});
+
+describe("renameFolder", () => {
+  const nameOf = async (id: string) =>
+    (await prisma.folder.findUniqueOrThrow({ where: { id }, select: { name: true } })).name;
+
+  it("renames a folder in the caller's org", async () => {
+    const { org } = await makeOrgWithAdmin();
+    const folder = await createFolder(org.id, "Polices");
+
+    expect(await renameFolder(org.id, folder.id, "Policies")).toBe(true);
+    expect(await nameOf(folder.id)).toBe("Policies");
+  });
+
+  it("refuses a folder owned by another org and leaves it untouched", async () => {
+    const { org } = await makeOrgWithAdmin();
+    const other = await makeOrgWithAdmin();
+    const theirs = await createFolder(other.org.id, "Theirs");
+
+    expect(await renameFolder(org.id, theirs.id, "Mine now")).toBe(false);
+    expect(await nameOf(theirs.id)).toBe("Theirs");
+  });
+
+  it("reports a miss for an id that no longer exists", async () => {
+    const { org } = await makeOrgWithAdmin();
+
+    expect(await renameFolder(org.id, "cl00000000000000000000000", "Gone")).toBe(false);
+  });
+
+  it("leaves nesting alone", async () => {
+    const { org } = await makeOrgWithAdmin();
+    const parent = await createFolder(org.id, "Quality");
+    const child = await createFolder(org.id, "SOPs", parent.id);
+
+    await renameFolder(org.id, child.id, "Procedures");
+
+    const row = await prisma.folder.findUniqueOrThrow({ where: { id: child.id } });
+    expect(row).toMatchObject({ parentId: parent.id, name: "Procedures" });
   });
 });

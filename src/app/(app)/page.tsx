@@ -32,7 +32,7 @@ export default async function Home() {
         meta="Your controlled library, at a glance."
         actions={
           <>
-            <Button href="/search" variant="secondary">
+            <Button href="/explorer" variant="secondary">
               <Search size={15} strokeWidth={1.75} aria-hidden />
               Search
             </Button>

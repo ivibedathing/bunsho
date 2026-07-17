@@ -118,15 +118,35 @@ export function assembleExplorerTree(folderRows: FolderRow[], docRows: DocRow[])
   return tree;
 }
 
+export interface ExplorerTreeOptions {
+  /**
+   * Restrict the tree to current, published, non-retired pages — what a Viewer
+   * may see (DECISIONS.md — roles + permission matrix).
+   *
+   * A visibility flag rather than a `role` param, because `listParentOptions`
+   * wants the whole tree and has no role to hand over. The route reads
+   * `user.role` and decides; the rule stays next to `rbac`, not in here.
+   *
+   * A published page nested under a draft parent loses its parent from the row
+   * set and surfaces as a root page — the same path an orphan already takes.
+   */
+  publishedOnly?: boolean;
+}
+
 /** Assemble the whole hierarchy for an org in two queries. */
-export async function getExplorerTree(orgId: string): Promise<ExplorerTree> {
+export async function getExplorerTree(
+  orgId: string,
+  opts: ExplorerTreeOptions = {},
+): Promise<ExplorerTree> {
   const [folderRows, docRows] = await Promise.all([
     prisma.folder.findMany({
       where: { orgId },
       select: { id: true, name: true, parentId: true },
     }),
     prisma.document.findMany({
-      where: { orgId },
+      where: opts.publishedOnly
+        ? { orgId, currentPublishedVersionId: { not: null }, retiredAt: null }
+        : { orgId },
       select: {
         id: true,
         docCode: true,

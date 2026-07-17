@@ -15,17 +15,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     await signOut({ redirectTo: "/signin" });
   }
 
+  // Explorer absorbed Search — it is also the Viewer's only route to a document.
   const items: NavItem[] = canManage
     ? [
         { href: "/", label: "Home", icon: "home" },
         { href: "/explorer", label: "Explorer", icon: "explorer" },
         { href: "/documents", label: "Documents", icon: "documents" },
-        { href: "/search", label: "Search", icon: "search" },
         { href: "/documents/import", label: "Import", icon: "import" },
       ]
     : [
         { href: "/", label: "Home", icon: "home" },
-        { href: "/search", label: "Search", icon: "search" },
+        { href: "/explorer", label: "Explorer", icon: "explorer" },
       ];
 
   return (

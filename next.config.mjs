@@ -16,6 +16,11 @@ const nextConfig = {
   // pg-boss (and its pg dependency) must stay a runtime require — bundling it
   // breaks the instrumentation compile in dev ("Can't resolve 'fs'").
   serverExternalPackages: ["pg-boss"],
+  // Search folded into Explorer; the query string carries over untouched, so an
+  // old /search?q=… bookmark lands on the same results.
+  async redirects() {
+    return [{ source: "/search", destination: "/explorer", permanent: false }];
+  },
   // Next 16 defaults to Turbopack, which ignores the webpack hook below and
   // errors out when it sees one. The alias is conditional on `nextRuntime`,
   // which Turbopack's static `resolveAlias` can't express — so `dev`/`build`
