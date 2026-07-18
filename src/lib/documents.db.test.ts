@@ -5,6 +5,7 @@ import {
   EMPTY_DOC,
   getDocumentWithDraft,
   listDocuments,
+  moveDocument,
   nextDocCode,
   saveDraft,
 } from "@/lib/documents";
@@ -316,5 +317,97 @@ describe("saveDraft", () => {
 
     const after = await prisma.documentVersion.findUniqueOrThrow({ where: { id: draft.id } });
     expect(after.prosemirrorJson).toEqual(pmDoc("ours"));
+  });
+});
+
+describe("moveDocument", () => {
+  it("files a top-level document into a folder", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const folder = await makeFolder(org.id, "Policies");
+    const { doc } = await makeDocumentWithDraft(org.id, admin.id);
+
+    await moveDocument(org.id, doc.id, folder.id);
+
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
+    expect(after.folderId).toBe(folder.id);
+  });
+
+  it("moves a document out to the top level when folderId is null", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const folder = await makeFolder(org.id, "Policies");
+    const { doc } = await makeDocumentWithDraft(org.id, admin.id, { folderId: folder.id });
+
+    await moveDocument(org.id, doc.id, null);
+
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
+    expect(after.folderId).toBeNull();
+  });
+
+  it("detaches a nested page from its parent when filed into a folder", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const folder = await makeFolder(org.id, "Policies");
+    const { doc: parent } = await makeDocumentWithDraft(org.id, admin.id, { docCode: "DOC-500" });
+    const child = await prisma.document.create({
+      data: { orgId: org.id, docCode: "DOC-501", title: "Child", parentId: parent.id },
+    });
+
+    await moveDocument(org.id, child.id, folder.id);
+
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: child.id } });
+    expect(after.parentId).toBeNull();
+    expect(after.folderId).toBe(folder.id);
+  });
+
+  it("bumps updatedAt so the list re-sorts", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const folder = await makeFolder(org.id);
+    const { doc } = await makeDocumentWithDraft(org.id, admin.id);
+    const stale = new Date("2026-01-01T00:00:00Z");
+    await setUpdatedAt(doc.id, stale);
+
+    await moveDocument(org.id, doc.id, folder.id);
+
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
+    expect(after.updatedAt.getTime()).toBeGreaterThan(stale.getTime());
+  });
+
+  it("leaves the moved page's own children in place — the subtree follows it", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const folder = await makeFolder(org.id, "Policies");
+    const { doc: parent } = await makeDocumentWithDraft(org.id, admin.id, { docCode: "DOC-600" });
+    const child = await prisma.document.create({
+      data: { orgId: org.id, docCode: "DOC-601", title: "Child", parentId: parent.id },
+    });
+
+    await moveDocument(org.id, parent.id, folder.id);
+
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: child.id } });
+    expect(after.parentId).toBe(parent.id);
+  });
+
+  it("cannot move another org's document, and leaves it untouched", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const other = await makeOrgWithAdmin();
+    const folder = await makeFolder(other.org.id, "Theirs");
+    const { doc } = await makeDocumentWithDraft(org.id, admin.id);
+
+    await expect(moveDocument(other.org.id, doc.id, folder.id)).rejects.toThrow(
+      "Document not found",
+    );
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
+    expect(after.folderId).toBeNull();
+  });
+
+  it("refuses a folder that belongs to another org", async () => {
+    const { org, admin } = await makeOrgWithAdmin();
+    const other = await makeOrgWithAdmin();
+    const foreignFolder = await makeFolder(other.org.id, "Theirs");
+    const { doc } = await makeDocumentWithDraft(org.id, admin.id);
+
+    await expect(moveDocument(org.id, doc.id, foreignFolder.id)).rejects.toThrow(
+      "Folder not found",
+    );
+    const after = await prisma.document.findUniqueOrThrow({ where: { id: doc.id } });
+    expect(after.folderId).toBeNull();
   });
 });
