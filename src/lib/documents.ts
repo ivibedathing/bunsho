@@ -46,6 +46,43 @@ async function resolveParent(orgId: string, parentId?: string | null): Promise<s
   return parent.id;
 }
 
+/** Resolve a requested folder to one this org owns, for the same tenancy reason
+ *  as `resolveParent`: the id arrives from a form or a drag payload. */
+async function resolveFolder(orgId: string, folderId?: string | null): Promise<string | null> {
+  if (!folderId) return null;
+  const folder = await prisma.folder.findFirst({
+    where: { id: folderId, orgId },
+    select: { id: true },
+  });
+  if (!folder) throw new Error("Folder not found");
+  return folder.id;
+}
+
+/**
+ * Re-file a document into a folder (or to no folder, `null`). Filing, not
+ * controlled content — so, like folder create/rename, it is deliberately not
+ * audit-logged (DECISIONS.md — folders are filing).
+ *
+ * Moving into a folder clears `parentId`: `documents_child_has_no_folder` makes
+ * folder and parent mutually exclusive, so a nested page dragged into a folder
+ * detaches from its parent and becomes a root page there — the same gesture a
+ * file manager gives. Moving to no folder (drop on "Unfiled") also detaches, so
+ * the page lands at the top level. Children of the moved page are untouched;
+ * they still derive their location from it.
+ */
+export async function moveDocument(
+  orgId: string,
+  documentId: string,
+  folderId: string | null,
+): Promise<void> {
+  const resolvedFolder = await resolveFolder(orgId, folderId);
+  const { count } = await prisma.document.updateMany({
+    where: { id: documentId, orgId },
+    data: { folderId: resolvedFolder, parentId: null, updatedAt: new Date() },
+  });
+  if (count === 0) throw new Error("Document not found");
+}
+
 /**
  * Create a document and its initial (version 1) draft in one transaction, and
  * record the `document_created` audit entry. The draft is mutable (publishedAt

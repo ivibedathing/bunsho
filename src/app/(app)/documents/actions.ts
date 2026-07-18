@@ -7,7 +7,7 @@ import { createAttachment, deleteAttachment, isInlineImageType } from "@/lib/att
 import { runAiReview, runAiSummary, runDocumentChecks } from "@/lib/checks";
 import { prisma } from "@/lib/db";
 import { isValidDocCode, normalizeDocCode } from "@/lib/docCode";
-import { createDocument, nextDocCode, saveDraft } from "@/lib/documents";
+import { createDocument, moveDocument, nextDocCode, saveDraft } from "@/lib/documents";
 import { rebuildGitRepo } from "@/lib/export/repo";
 import { createFolder, renameFolder } from "@/lib/folders";
 import { importMarkdownFiles, importZip } from "@/lib/import";
@@ -76,6 +76,23 @@ export async function createFolderAction(formData: FormData): Promise<void> {
     revalidatePath("/documents");
     revalidatePath("/explorer");
   }
+}
+
+/**
+ * Re-file a document into a folder (bound arg, `null` = no folder / top level).
+ * Drives both the Explorer drag-and-drop and the edit-page folder picker. Like
+ * the folder actions it is filing, not controlled content, so it is not
+ * audit-logged. No redirect: callers refresh in place.
+ */
+export async function moveDocumentAction(
+  documentId: string,
+  folderId: string | null,
+): Promise<void> {
+  const user = await requireRole("admin", "editor");
+  await moveDocument(user.orgId, documentId, folderId);
+  revalidatePath("/explorer");
+  revalidatePath("/documents");
+  revalidatePath(`/documents/${documentId}/edit`);
 }
 
 /** Rename from the Explorer tree. The redirect drops `?rename=` from the URL. */
