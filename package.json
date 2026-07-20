@@ -33,7 +33,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.111.0",
+    "@anthropic-ai/sdk": "0.112.3",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@prisma/client-runtime-utils": "^7.8.0",
@@ -48,14 +48,14 @@
     "@tiptap/react": "2.27.2",
     "@tiptap/starter-kit": "2.27.2",
     "diff": "^9.0.0",
-    "isomorphic-git": "1.38.7",
+    "isomorphic-git": "1.38.9",
     "jszip": "3.10.1",
-    "lucide-react": "^1.24.0",
+    "lucide-react": "^1.25.0",
     "markdown-it": "14.3.0",
     "motion": "^12.42.2",
     "next": "^16.2.10",
     "next-auth": "5.0.0-beta.31",
-    "pg-boss": "12.26.0",
+    "pg-boss": "12.26.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
